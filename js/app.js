@@ -144,12 +144,13 @@ const panels = document.querySelectorAll('.panel');
 
 function activatePanel(name) {
   document.querySelectorAll('.sb-item').forEach((i) => i.classList.remove('active'));
-  // mark the matching item active (including dd items)
   const match = document.querySelector(`.sb-item[data-panel="${name}"]`);
   if (match) match.classList.add('active');
   panels.forEach((p) => p.classList.remove('active'));
   const tgt = document.getElementById('panel-' + name);
   if (tgt) tgt.classList.add('active');
+  // trigger resize so canvases (globe, chart) resize to their now-visible container
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
 }
 
 // Regular items
