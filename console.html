@@ -201,6 +201,35 @@
               </div>
             </div>
           </div>
+          <!-- SNDL EXPOSURE METER -->
+          <div class="exposure-meter">
+            <div class="em-head">
+              <div class="em-title">SNDL Exposure Meter</div>
+              <div class="em-tag live">LIVE</div>
+            </div>
+            <div class="em-body">
+              <div class="em-gauge-wrap">
+                <svg class="em-gauge" viewBox="0 0 200 120" width="200" height="120">
+                  <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--bg-3)" stroke-width="14" stroke-linecap="round"/>
+                  <path id="emArc" d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#emGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="125"/>
+                  <defs>
+                    <linearGradient id="emGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#2ecc71"/>
+                      <stop offset="50%" stop-color="#f1c40f"/>
+                      <stop offset="100%" stop-color="#ff3131"/>
+                    </linearGradient>
+                  </defs>
+                  <text id="emValue" x="100" y="90" text-anchor="middle" fill="var(--text)" font-family="JetBrains Mono" font-size="28" font-weight="700">47%</text>
+                </svg>
+              </div>
+              <div class="em-info">
+                <div class="em-desc">Estimated fleet traffic being archived by adversaries right now for future quantum decryption.</div>
+                <div class="em-stat"><span class="em-label">Intercepted channels:</span> <span class="em-val" id="emChannels">118 / 247</span></div>
+                <div class="em-stat"><span class="em-label">Readability:</span> <span class="em-val warn">Failing today · readable by 2035</span></div>
+                <div class="em-note">This number never reaches zero. SNDL is an ongoing, active threat — not a future hypothetical.</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- GLOBE -->

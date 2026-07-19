@@ -377,6 +377,25 @@ const sbTime = document.getElementById('sbTime');
 function tick() { if (sbTime) sbTime.textContent = nowTime() + ' UTC'; }
 tick(); setInterval(tick, 1000);
 
+/* ---------- SNDL EXPOSURE METER ---------- */
+const emArc = document.getElementById('emArc');
+const emValue = document.getElementById('emValue');
+const emChannels = document.getElementById('emChannels');
+let emPercent = 47;
+function updateExposure() {
+  // Fluctuate between 30% and 70%
+  emPercent += (Math.random() - 0.5) * 4;
+  emPercent = Math.max(30, Math.min(72, emPercent));
+  const arcLen = 251.3; // half circle length
+  const offset = arcLen * (1 - emPercent / 100);
+  if (emArc) emArc.setAttribute('stroke-dashoffset', offset);
+  if (emValue) emValue.textContent = Math.round(emPercent) + '%';
+  const channels = Math.round((emPercent / 100) * 247);
+  if (emChannels) emChannels.textContent = channels + ' / 247';
+}
+updateExposure();
+setInterval(updateExposure, 2500);
+
 /* ============================================================ 3D GLOBE */
 const globeCanvas = document.getElementById('globeCanvas');
 let WORLD_GEOJSON = null;
