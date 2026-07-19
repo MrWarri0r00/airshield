@@ -333,6 +333,18 @@ tick(); setInterval(tick, 1000);
 
 /* ============================================================ 3D GLOBE */
 const globeCanvas = document.getElementById('globeCanvas');
+let WORLD_GEOJSON = null;
+
+async function loadWorld() {
+  try {
+    const res = await fetch('assets/world.geojson');
+    WORLD_GEOJSON = await res.json();
+  } catch (e) {
+    console.warn('world geojson failed', e);
+  }
+}
+loadWorld();
+
 if (globeCanvas) {
   const g = globeCanvas.getContext('2d');
   let GW, GH;
@@ -343,7 +355,6 @@ if (globeCanvas) {
   resizeGlobe();
   window.addEventListener('resize', resizeGlobe);
 
-  // Simple sphere projection with rotation
   let rotY = 0, rotX = -0.3;
   let dragging = false, lastX = 0, lastY = 0;
   let autoRotate = true;
@@ -357,7 +368,6 @@ if (globeCanvas) {
     rotX = Math.max(-1.2, Math.min(1.2, rotX));
     lastX = e.clientX; lastY = e.clientY;
   });
-  // touch
   globeCanvas.addEventListener('touchstart', (e) => { dragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; autoRotate = false; });
   globeCanvas.addEventListener('touchend', () => { dragging = false; });
   globeCanvas.addEventListener('touchmove', (e) => {
@@ -369,46 +379,47 @@ if (globeCanvas) {
     lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
   }, { passive: false });
 
-  // lat/lon → 3D point on sphere
   function project(lat, lon, r) {
     const x = r * Math.cos(lat * Math.PI / 180) * Math.sin(lon * Math.PI / 180);
     const y = r * Math.sin(lat * Math.PI / 180);
     const z = r * Math.cos(lat * Math.PI / 180) * Math.cos(lon * Math.PI / 180);
-    // rotate Y
     const x2 = x * Math.cos(rotY) + z * Math.sin(rotY);
     const z2 = -x * Math.sin(rotY) + z * Math.cos(rotY);
-    // rotate X
     const y2 = y * Math.cos(rotX) - z2 * Math.sin(rotX);
     const z3 = y * Math.sin(rotX) + z2 * Math.cos(rotX);
     return { x: x2, y: y2, z: z3 };
   }
 
-  // generate world map dots (simplified landmass)
-  const mapDots = [];
-  // continents as rough lat/lon clusters
-  const continents = [
-    // North America
-    { lat: [25, 70], lon: [-130, -65], density: 80 },
-    // South America
-    { lat: [-55, 12], lon: [-82, -35], density: 60 },
-    // Europe
-    { lat: [36, 70], lon: [-10, 40], density: 50 },
-    // Africa
-    { lat: [-35, 35], lon: [-18, 50], density: 70 },
-    // Asia
-    { lat: [10, 75], lon: [40, 140], density: 90 },
-    // Australia
-    { lat: [-40, -10], lon: [110, 155], density: 40 },
-  ];
-  continents.forEach((c) => {
-    for (let i = 0; i < c.density; i++) {
-      const lat = c.lat[0] + Math.random() * (c.lat[1] - c.lat[0]);
-      const lon = c.lon[0] + Math.random() * (c.lon[1] - c.lon[0]);
-      mapDots.push({ lat, lon });
-    }
-  });
+  // Plane icon path (small airplane silhouette)
+  function drawPlaneIcon(ctx, x, y, size, color, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size, size);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    // simple plane shape pointing up
+    ctx.moveTo(0, -7);          // nose
+    ctx.lineTo(1, -2);          // right body
+    ctx.lineTo(6, 0);           // right wing tip
+    ctx.lineTo(6, 2);
+    ctx.lineTo(1, 2);
+    ctx.lineTo(1.5, 5);          // right tail
+    ctx.lineTo(3, 7);
+    ctx.lineTo(3, 8);
+    ctx.lineTo(0, 7);           // tail center
+    ctx.lineTo(-3, 8);
+    ctx.lineTo(-3, 7);
+    ctx.lineTo(-1.5, 5);
+    ctx.lineTo(-1, 2);
+    ctx.lineTo(-6, 2);
+    ctx.lineTo(-6, 0);
+    ctx.lineTo(-1, -2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 
-  let hoveredFlight = null;
   let selectedFlight = null;
   const globeInfo = document.getElementById('globeInfo');
 
@@ -422,7 +433,7 @@ if (globeCanvas) {
   function updateGlobeInfo(fl) {
     if (!globeInfo) return;
     if (!fl) {
-      globeInfo.innerHTML = '<div class="gi-head">SELECT AN AIRCRAFT</div><div class="gi-empty">Click any red dot on the globe to view live flight data.</div>';
+      globeInfo.innerHTML = '<div class="gi-head">SELECT AN AIRCRAFT</div><div class="gi-empty">Click any red plane on the globe to view live flight data.</div>';
       return;
     }
     const statusClass = fl.status === 'WATCH' ? 'warn' : 'ok';
@@ -447,11 +458,11 @@ if (globeCanvas) {
     const my = (e.clientY - rect.top) * devicePixelRatio;
     const cx = GW / 2, cy = GH / 2;
     const r = Math.min(GW, GH) * 0.38;
-    let closest = null, closestDist = 20 * devicePixelRatio;
+    let closest = null, closestDist = 24 * devicePixelRatio;
     FLIGHTS.forEach((fl) => {
       const p = project(fl.lat, fl.lon, r);
       const sx = cx + p.x, sy = cy - p.y;
-      if (p.z > -r * 0.3) { // front-ish
+      if (p.z > -r * 0.3) {
         const d = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
         if (d < closestDist) { closestDist = d; closest = fl; }
       }
@@ -481,7 +492,7 @@ if (globeCanvas) {
     g.arc(cx, cy, r, 0, Math.PI * 2);
     g.stroke();
 
-    // grid lines (lat/lon)
+    // grid lines
     g.strokeStyle = 'rgba(255,255,255,0.04)';
     g.lineWidth = 0.5 * devicePixelRatio;
     for (let lat = -60; lat <= 60; lat += 30) {
@@ -503,18 +514,34 @@ if (globeCanvas) {
       g.stroke();
     }
 
-    // landmass dots
-    g.fillStyle = 'rgba(138,150,180,0.5)';
-    mapDots.forEach((d) => {
-      const p = project(d.lat, d.lon, r);
-      if (p.z > 0) {
-        g.beginPath();
-        g.arc(cx + p.x, cy - p.y, 1.2 * devicePixelRatio, 0, Math.PI * 2);
-        g.fill();
-      }
-    });
+    // draw actual country borders from geojson
+    if (WORLD_GEOJSON && WORLD_GEOJSON.features) {
+      g.strokeStyle = 'rgba(138,150,180,0.55)';
+      g.fillStyle = 'rgba(40,55,85,0.35)';
+      g.lineWidth = 0.8 * devicePixelRatio;
+      WORLD_GEOJSON.features.forEach((feat) => {
+        const geom = feat.geometry;
+        if (!geom) return;
+        const coords = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+        coords.forEach((poly) => {
+          poly.forEach((ring) => {
+            let first = true;
+            ring.forEach((pt) => {
+              const [lon, lat] = pt;
+              const p = project(lat, lon, r);
+              const sx = cx + p.x, sy = cy - p.y;
+              if (p.z > 0) {
+                if (first) { g.beginPath(); g.moveTo(sx, sy); first = false; }
+                else { g.lineTo(sx, sy); }
+              }
+            });
+            if (!first) { g.closePath(); g.fill(); g.stroke(); }
+          });
+        });
+      });
+    }
 
-    // flight paths between random pairs (QKD links)
+    // flight paths (QKD links)
     g.strokeStyle = 'rgba(255,49,49,0.25)';
     g.lineWidth = 1 * devicePixelRatio;
     for (let i = 0; i < 8; i++) {
@@ -528,32 +555,27 @@ if (globeCanvas) {
       }
     }
 
-    // aircraft dots
+    // aircraft as plane icons
     FLIGHTS.forEach((fl) => {
       const p = project(fl.lat, fl.lon, r);
-      if (p.z > -r * 0.3) {
+      if (p.z > -r * 0.2) {
         const sx = cx + p.x, sy = cy - p.y;
-        const alpha = Math.max(0.3, p.z / r + 0.3);
+        const alpha = Math.max(0.35, p.z / r + 0.35);
         const isThreat = fl.threat;
         const color = isThreat ? '#660018' : '#ff3131';
-        const dotR = (selectedFlight === fl ? 6 : 3.5) * devicePixelRatio;
+        const iconSize = (selectedFlight === fl ? 1.6 : 1) * devicePixelRatio;
 
         // glow
         g.shadowColor = color;
-        g.shadowBlur = 12 * devicePixelRatio;
-        g.fillStyle = color;
-        g.globalAlpha = alpha;
-        g.beginPath();
-        g.arc(sx, sy, dotR, 0, Math.PI * 2);
-        g.fill();
+        g.shadowBlur = 10 * devicePixelRatio;
+        drawPlaneIcon(g, sx, sy, iconSize, color, alpha);
         g.shadowBlur = 0;
-        g.globalAlpha = 1;
 
         if (selectedFlight === fl) {
           g.strokeStyle = '#ff3131';
           g.lineWidth = 1.5 * devicePixelRatio;
           g.beginPath();
-          g.arc(sx, sy, dotR + 6 * devicePixelRatio, 0, Math.PI * 2);
+          g.arc(sx, sy, 12 * devicePixelRatio, 0, Math.PI * 2);
           g.stroke();
         }
       }
