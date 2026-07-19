@@ -33,6 +33,55 @@
     .icon-sun { display: none; }
     [data-theme="light"] .icon-sun { display: block; }
     [data-theme="light"] .icon-moon { display: none; }
+
+    /* MOBILE */
+    @media (max-width: 768px) {
+      .topbar-meta { display: none; }
+      .topbar-title { font-size: 11px; letter-spacing: 0.5px; }
+      .back-btn { padding: 6px 10px; font-size: 11px; }
+      .back-btn svg { width: 12px; height: 12px; }
+      .console-page .console { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      .console-sidebar { flex-direction: row; overflow-x: auto; padding: 8px; gap: 4px; border-right: none; border-bottom: 1px solid var(--border); -webkit-overflow-scrolling: touch; }
+      .console-sidebar .sb-nav { flex-direction: row; gap: 4px; }
+      .sb-item { padding: 8px 10px; white-space: nowrap; }
+      .sb-item.active::before { display: none; }
+      .sb-label { display: inline; font-size: 11px; }
+      .sb-ico { font-size: 13px; }
+      .sb-arrow { display: none; }
+      .sb-badge { font-size: 9px; padding: 1px 6px; min-width: 18px; }
+      .sb-dd-menu { display: none !important; }
+      .sb-footer { display: none; }
+      .console-search { padding: 10px 12px; }
+      .search-box { padding: 8px 12px; }
+      .search-box input { font-size: 12px; }
+      .search-box kbd { display: none; }
+      .console-page .panel { padding: 14px; }
+      .panel-head { margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+      .panel-head h3 { font-size: 16px; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .kpi { padding: 12px 14px; }
+      .kpi-value { font-size: 22px; }
+      .ov-grid { grid-template-columns: 1fr; }
+      .card { padding: 14px; }
+      .globe-wrap { height: calc(100vh - 220px); min-height: 320px; }
+      .globe-info { position: relative; width: 100%; top: auto; right: auto; margin-top: 8px; max-height: none; }
+      .globe-legend { font-size: 10px; padding: 8px 10px; bottom: 8px; left: 8px; }
+      .reg-row { grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 10px 12px; }
+      .reg-row .reg-route, .reg-row .reg-type { font-size: 11px; }
+      .reg-row .reg-arrow { display: none; }
+      .feed-item { grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; }
+      .feed-src { display: none; }
+      .fleet-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .fleet-card { padding: 10px; }
+      .settings-grid { gap: 8px; }
+      .set-row { padding: 12px 14px; flex-direction: row; align-items: center; }
+      .key-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .globe-wrap { height: calc(100vh - 240px); min-height: 280px; }
+      .globe-legend { display: none; }
+    }
   </style>
 </head>
 <body data-theme="dark">
@@ -62,13 +111,6 @@
     <div class="console" id="console">
       <!-- LEFT SIDEBAR -->
       <div class="console-sidebar">
-        <div class="sb-header">
-          <img src="assets/logo.svg" alt="" class="sb-logo" />
-          <div>
-            <div class="sb-title">Air Shield</div>
-            <div class="sb-sub">v2.0.50 · QUANTUM</div>
-          </div>
-        </div>
         <nav class="sb-nav">
           <button class="sb-item active" data-panel="overview" title="Overview">
             <span class="sb-ico">⌂</span> <span class="sb-label">Overview</span>

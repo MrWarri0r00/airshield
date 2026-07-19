@@ -276,17 +276,28 @@ renderRegistry();
 
 /* ---------- SEARCH ---------- */
 const searchInput = document.getElementById('flightSearch');
+let currentSearch = '';
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
-    const v = e.target.value;
-    renderRegistry(v);
-    // also filter the fleet grid
-    const f = v.toUpperCase();
+    currentSearch = e.target.value;
+    // Re-render registry with filter
+    renderRegistry(currentSearch);
+    // Filter fleet grid
+    const f = currentSearch.toUpperCase();
     document.querySelectorAll('.fleet-card').forEach((card) => {
       const id = card.querySelector('.fleet-id').textContent.toUpperCase();
       const route = card.querySelector('.fleet-route').textContent.toUpperCase();
       card.style.display = (!f || id.includes(f) || route.includes(f)) ? '' : 'none';
     });
+    // Highlight matching planes on the globe
+    if (f) {
+      FLIGHTS.forEach((fl) => {
+        const match = fl.id.toUpperCase().includes(f) || fl.from.toUpperCase().includes(f) || fl.to.toUpperCase().includes(f) || fl.type.toUpperCase().includes(f);
+        fl.searchMatch = match;
+      });
+    } else {
+      FLIGHTS.forEach((fl) => { fl.searchMatch = false; });
+    }
   });
 }
 
@@ -480,11 +491,11 @@ if (globeCanvas) {
     const cx = GW / 2, cy = GH / 2;
     const r = Math.min(GW, GH) * 0.38;
 
-    // sphere background
+    // sphere background — FlightAware beta uses deep navy (#000E29)
     const grad = g.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
-    grad.addColorStop(0, '#16203a');
-    grad.addColorStop(0.7, '#0a1020');
-    grad.addColorStop(1, '#050810');
+    grad.addColorStop(0, '#0a1530');
+    grad.addColorStop(0.7, '#000E29');
+    grad.addColorStop(1, '#000814');
     g.fillStyle = grad;
     g.beginPath();
     g.arc(cx, cy, r, 0, Math.PI * 2);
@@ -567,8 +578,13 @@ if (globeCanvas) {
         const sx = cx + p.x, sy = cy - p.y;
         const alpha = Math.max(0.35, p.z / r + 0.35);
         const isThreat = fl.threat;
-        const color = isThreat ? '#660018' : '#ff3131';
-        const iconSize = (selectedFlight === fl ? 1.6 : 1) * devicePixelRatio;
+        let color = isThreat ? '#660018' : '#ff3131';
+        let iconSize = (selectedFlight === fl ? 1.6 : 1) * devicePixelRatio;
+        // search highlight
+        if (fl.searchMatch) {
+          color = '#ffcc00';
+          iconSize = 1.8 * devicePixelRatio;
+        }
 
         // glow
         g.shadowColor = color;
