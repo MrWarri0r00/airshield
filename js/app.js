@@ -217,25 +217,59 @@ const ROUTES = [
   ['SFO','ICN'],['SEA','AMS'],['IAD','HND'],['BOS','MAD'],['PHX','ZRH'],['DEN','VIE'],
   ['HKG','SFO'],['SIN','LHR'],['SYD','LAX'],['DXB','JFK'],['ICN','ATL'],['AMS','JFK'],
 ];
+// Airport coordinates (lat, lon)
+const AIRPORTS = {
+  JFK: [40.6413, -73.7781], LHR: [51.4700, -0.4543], LAX: [33.9416, -118.4085],
+  NRT: [35.7720, 140.3929], ATL: [33.6407, -84.4277], FRA: [50.0379, 8.5622],
+  DFW: [32.8998, -97.0403], GRU: [-23.4356, -46.4731], ORD: [41.9742, -87.9073],
+  DXB: [25.2532, 55.3657], MIA: [25.7959, -80.2870], CDG: [49.0097, 2.5479],
+  SFO: [37.6213, -122.3790], ICN: [37.4602, 126.4407], SEA: [47.4502, -122.3088],
+  AMS: [52.3105, 4.7683], IAD: [38.9531, -77.4565], HND: [35.5494, 139.7798],
+  BOS: [42.3656, -71.0096], MAD: [40.4983, -3.5676], PHX: [33.4342, -112.0116],
+  ZRH: [47.4647, 8.5492], DEN: [39.8561, -104.6737], VIE: [48.1102, 16.5697],
+  HKG: [22.3080, 113.9185], SIN: [1.3644, 103.9915], SYD: [-33.9399, 151.1753],
+};
 const TYPES = ['B777-300ER','B787-9','A350-1000','A380-800','B747-8I','A330-300','B767-300ER','A220-300'];
-// generate 80 flights with lat/lon
+
+function altColor(alt) {
+  // Low = red, mid = orange, high = yellow
+  if (alt < 35000) return '#ff3131';
+  if (alt < 40000) return '#ff8c1a';
+  return '#ffcc00';
+}
+
 const FLIGHTS = [];
 for (let i = 0; i < 80; i++) {
   const route = ROUTES[i % ROUTES.length];
-  const lat = (Math.random() - 0.5) * 160; // -80 to 80
-  const lon = (Math.random() - 0.5) * 360; // -180 to 180
+  const fromCoords = AIRPORTS[route[0]] || [40, -74];
+  const toCoords = AIRPORTS[route[1]] || [51, 0];
+  // Start somewhere along the great circle between origin and destination
+  const progress = 0.15 + Math.random() * 0.7;
+  const lat = fromCoords[0] + (toCoords[0] - fromCoords[0]) * progress + (Math.random() - 0.5) * 8;
+  const lon = fromCoords[1] + (toCoords[1] - fromCoords[1]) * progress + (Math.random() - 0.5) * 8;
   const score = Math.floor(Math.random() * 18) + 82;
   const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
   const threat = Math.random() < 0.08;
+  const heading = Math.floor(Math.atan2(toCoords[1] - lon, toCoords[0] - lat) * 180 / Math.PI + 360) % 360;
+  // Generate a trail behind the plane
+  const trail = [];
+  for (let t = 1; t <= 8; t++) {
+    const tp = Math.max(0, progress - t * 0.04);
+    trail.push([
+      fromCoords[0] + (toCoords[0] - fromCoords[0]) * tp,
+      fromCoords[1] + (toCoords[1] - fromCoords[1]) * tp,
+    ]);
+  }
   FLIGHTS.push({
     id: 'RTX-' + (1000 + Math.floor(Math.random() * 8999)),
     from: route[0], to: route[1],
+    fromCoords, toCoords,
     type: TYPES[Math.floor(Math.random() * TYPES.length)],
-    lat, lon, score, status, threat,
+    lat, lon, score, status, threat, heading, trail,
     alt: Math.floor(Math.random() * 30000) + 30000,
     spd: Math.floor(Math.random() * 200) + 480,
-    heading: Math.floor(Math.random() * 360),
     qkd: Math.random() > 0.15,
+    progress, // 0..1 along route
   });
 }
 
@@ -486,6 +520,41 @@ if (globeCanvas) {
     if (closest) { selectedFlight = closest; updateGlobeInfo(closest); }
   });
 
+  // Hover tooltip
+  let hoveredFlight = null;
+  const tooltip = document.createElement('div');
+  tooltip.style.cssText = 'position:absolute;background:rgba(10,14,30,0.95);border:1px solid #cc0001;border-radius:6px;padding:6px 10px;font:11px JetBrains Mono,monospace;color:#fff;pointer-events:none;z-index:50;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
+  if (globeCanvas.parentElement) globeCanvas.parentElement.appendChild(tooltip);
+
+  globeCanvas.addEventListener('mousemove', (e) => {
+    const rect = globeCanvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * devicePixelRatio;
+    const my = (e.clientY - rect.top) * devicePixelRatio;
+    const cx = GW / 2, cy = GH / 2;
+    const r = Math.min(GW, GH) * 0.38;
+    let closest = null, closestDist = 20 * devicePixelRatio;
+    FLIGHTS.forEach((fl) => {
+      const p = project(fl.lat, fl.lon, r);
+      const sx = cx + p.x, sy = cy - p.y;
+      if (p.z > -r * 0.3) {
+        const d = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+        if (d < closestDist) { closestDist = d; closest = fl; }
+      }
+    });
+    hoveredFlight = closest;
+    if (closest) {
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+      tooltip.style.top = (e.clientY - rect.top + 8) + 'px';
+      tooltip.innerHTML = `<span style="color:#ff3131;font-weight:bold">${closest.id}</span> · ${closest.from}→${closest.to} · ${closest.alt.toLocaleString()}ft`;
+      globeCanvas.style.cursor = 'pointer';
+    } else {
+      tooltip.style.display = 'none';
+      globeCanvas.style.cursor = dragging ? 'grabbing' : 'grab';
+    }
+  });
+  globeCanvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+
   function drawGlobe() {
     g.clearRect(0, 0, GW, GH);
     const cx = GW / 2, cy = GH / 2;
@@ -557,8 +626,71 @@ if (globeCanvas) {
       });
     }
 
-    // flight paths (QKD links)
-    g.strokeStyle = 'rgba(255,49,49,0.25)';
+    // Draw airport markers at origin/destination
+    g.fillStyle = 'rgba(120,200,255,0.7)';
+    g.strokeStyle = 'rgba(120,200,255,0.9)';
+    g.lineWidth = 1 * devicePixelRatio;
+    const drawnAirports = new Set();
+    FLIGHTS.forEach((fl) => {
+      [fl.from, fl.to].forEach((code) => {
+        if (drawnAirports.has(code)) return;
+        drawnAirports.add(code);
+        const coords = AIRPORTS[code];
+        if (!coords) return;
+        const p = project(coords[0], coords[1], r);
+        if (p.z > 0) {
+          const sx = cx + p.x, sy = cy - p.y;
+          g.beginPath();
+          g.arc(sx, sy, 3 * devicePixelRatio, 0, Math.PI * 2);
+          g.fill();
+          // label
+          g.font = `${9 * devicePixelRatio}px JetBrains Mono`;
+          g.fillStyle = 'rgba(150,180,220,0.8)';
+          g.fillText(code, sx + 5 * devicePixelRatio, sy + 3 * devicePixelRatio);
+          g.fillStyle = 'rgba(120,200,255,0.7)';
+        }
+      });
+    });
+
+    // Draw flight trails behind each plane
+    FLIGHTS.forEach((fl) => {
+      if (!fl.trail || fl.trail.length < 2) return;
+      g.strokeStyle = 'rgba(255,49,49,0.3)';
+      g.lineWidth = 1 * devicePixelRatio;
+      g.beginPath();
+      let started = false;
+      fl.trail.forEach((pt, i) => {
+        const p = project(pt[0], pt[1], r);
+        if (p.z > -r * 0.2) {
+          const sx = cx + p.x, sy = cy - p.y;
+          if (!started) { g.moveTo(sx, sy); started = true; }
+          else { g.lineTo(sx, sy); }
+        }
+      });
+      if (started) g.stroke();
+    });
+
+    // Draw origin/destination lines for selected flight
+    if (selectedFlight) {
+      const fl = selectedFlight;
+      g.strokeStyle = 'rgba(255,204,0,0.4)';
+      g.lineWidth = 1.2 * devicePixelRatio;
+      g.setLineDash([4 * devicePixelRatio, 4 * devicePixelRatio]);
+      [[fl.fromCoords, [fl.lat, fl.lon]], [[fl.lat, fl.lon], fl.toCoords]].forEach(([a, b]) => {
+        if (!a || !b) return;
+        const pa = project(a[0], a[1], r), pb = project(b[0], b[1], r);
+        if (pa.z > -r * 0.2 && pb.z > -r * 0.2) {
+          g.beginPath();
+          g.moveTo(cx + pa.x, cy - pa.y);
+          g.lineTo(cx + pb.x, cy - pb.y);
+          g.stroke();
+        }
+      });
+      g.setLineDash([]);
+    }
+
+    // flight paths (QKD links) between pairs
+    g.strokeStyle = 'rgba(255,49,49,0.15)';
     g.lineWidth = 1 * devicePixelRatio;
     for (let i = 0; i < 8; i++) {
       const a = FLIGHTS[i], b = FLIGHTS[i + 10];
@@ -571,14 +703,14 @@ if (globeCanvas) {
       }
     }
 
-    // aircraft as plane icons
+    // aircraft as plane icons (altitude color-coded)
     FLIGHTS.forEach((fl) => {
       const p = project(fl.lat, fl.lon, r);
       if (p.z > -r * 0.2) {
         const sx = cx + p.x, sy = cy - p.y;
         const alpha = Math.max(0.35, p.z / r + 0.35);
-        const isThreat = fl.threat;
-        let color = isThreat ? '#660018' : '#ff3131';
+        let color = altColor(fl.alt);
+        if (fl.threat) color = '#660018';
         let iconSize = (selectedFlight === fl ? 1.6 : 1) * devicePixelRatio;
         // search highlight
         if (fl.searchMatch) {
@@ -605,5 +737,33 @@ if (globeCanvas) {
     if (autoRotate) rotY += 0.002;
     requestAnimationFrame(drawGlobe);
   }
+
+  // Live movement — planes progress toward destination every 2s
+  setInterval(() => {
+    FLIGHTS.forEach((fl) => {
+      if (!fl.fromCoords || !fl.toCoords) return;
+      // advance progress
+      fl.progress += 0.008;
+      if (fl.progress >= 1) {
+        // Reset: new flight
+        fl.progress = 0;
+        const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
+        fl.from = route[0]; fl.to = route[1];
+        fl.fromCoords = AIRPORTS[route[0]] || [40, -74];
+        fl.toCoords = AIRPORTS[route[1]] || [51, 0];
+        fl.trail = [];
+      }
+      // Update position
+      fl.lat = fl.fromCoords[0] + (fl.toCoords[0] - fl.fromCoords[0]) * fl.progress + (Math.random() - 0.5) * 4;
+      fl.lon = fl.fromCoords[1] + (fl.toCoords[1] - fl.fromCoords[1]) * fl.progress + (Math.random() - 0.5) * 4;
+      fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
+      // Update trail
+      fl.trail.unshift([fl.lat, fl.lon]);
+      if (fl.trail.length > 8) fl.trail.pop();
+      // If selected flight, update info panel
+      if (selectedFlight === fl) updateGlobeInfo(fl);
+    });
+  }, 2000);
+
   drawGlobe();
 }
