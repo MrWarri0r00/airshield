@@ -331,32 +331,6 @@ const sbTime = document.getElementById('sbTime');
 function tick() { if (sbTime) sbTime.textContent = nowTime() + ' UTC'; }
 tick(); setInterval(tick, 1000);
 
-/* ---------- FULLSCREEN DASHBOARD ---------- */
-const fullscreenBtn = document.getElementById('fullscreenBtn');
-const dashboardSection = document.getElementById('dashboard');
-if (fullscreenBtn && dashboardSection) {
-  fullscreenBtn.addEventListener('click', () => {
-    const isFs = dashboardSection.classList.contains('dashboard-fullscreen');
-    if (isFs) {
-      dashboardSection.classList.remove('dashboard-fullscreen');
-      document.body.style.overflow = '';
-    } else {
-      dashboardSection.classList.add('dashboard-fullscreen');
-      document.body.style.overflow = 'hidden';
-    }
-    // resize globe canvas after transition
-    setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-  });
-  // ESC to exit
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && dashboardSection.classList.contains('dashboard-fullscreen')) {
-      dashboardSection.classList.remove('dashboard-fullscreen');
-      document.body.style.overflow = '';
-      setTimeout(() => window.dispatchEvent(new Event('resize')), 300);
-    }
-  });
-}
-
 /* ============================================================ 3D GLOBE */
 const globeCanvas = document.getElementById('globeCanvas');
 if (globeCanvas) {

@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <!-- ============================ NAV ============================ -->
+  <!-- NAV -->
   <header class="nav" id="nav">
     <div class="nav-inner">
       <a href="#top" class="nav-brand">
@@ -23,7 +23,7 @@
         <a href="#threat">The Threat</a>
         <a href="#solution">The Solution</a>
         <a href="#architecture">Architecture</a>
-        <a href="#dashboard" class="cta-link">Live Demo</a>
+        <a href="console.html" class="cta-link">Live Demo</a>
       </nav>
       <div class="nav-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light / dark">
@@ -37,7 +37,7 @@
     </div>
   </header>
 
-  <!-- ============================ HERO ============================ -->
+  <!-- HERO -->
   <section class="hero" id="top">
     <canvas id="heroCanvas" class="hero-canvas"></canvas>
     <div class="hero-grid"></div>
@@ -56,8 +56,8 @@
         cannot stop — because the math that protects them is about to break.
       </p>
       <div class="hero-actions">
-        <a href="#dashboard" class="btn btn-primary">
-          Launch Live Demo
+        <a href="console.html" class="btn btn-primary">
+          Launch Command Console
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
         <a href="#threat" class="btn btn-ghost">Understand the Threat</a>
@@ -74,7 +74,7 @@
     </div>
   </section>
 
-  <!-- ============================ THREAT ============================ -->
+  <!-- THREAT -->
   <section class="section" id="threat">
     <div class="section-head">
       <div class="section-tag">01 · THE PROBLEM</div>
@@ -86,68 +86,38 @@
         quantum computer comes online.
       </p>
     </div>
-
     <div class="timeline">
       <div class="timeline-line"></div>
       <div class="timeline-node">
         <div class="node-year">2026</div>
         <div class="node-dot"></div>
-        <div class="node-card">
-          <h4>Now</h4>
-          <p>SNDL exfiltration in progress. RSA / ECC still protect traffic — but every intercepted packet is being archived for future decryption.</p>
-        </div>
+        <div class="node-card"><h4>Now</h4><p>SNDL exfiltration in progress. RSA / ECC still protect traffic — but every intercepted packet is being archived for future decryption.</p></div>
       </div>
       <div class="timeline-node">
         <div class="node-year">2029</div>
         <div class="node-dot"></div>
-        <div class="node-card">
-          <h4>Microsoft Majorana 2</h4>
-          <p>Scalable quantum hardware projected to ship. The break-even point for Shor's algorithm approaches.</p>
-        </div>
+        <div class="node-card"><h4>Microsoft Majorana 2</h4><p>Scalable quantum hardware projected to ship. The break-even point for Shor's algorithm approaches.</p></div>
       </div>
       <div class="timeline-node">
         <div class="node-year">2035</div>
         <div class="node-dot danger"></div>
-        <div class="node-card danger">
-          <h4>"Q-Day"</h4>
-          <p>A cryptographically-relevant quantum computer breaks RSA-2048 and ECC in practical time. Every archived packet becomes readable.</p>
-        </div>
+        <div class="node-card danger"><h4>"Q-Day"</h4><p>A cryptographically-relevant quantum computer breaks RSA-2048 and ECC in practical time. Every archived packet becomes readable.</p></div>
       </div>
       <div class="timeline-node">
         <div class="node-year">2050</div>
         <div class="node-dot shield"></div>
-        <div class="node-card shield">
-          <h4>The Air Shield Standard</h4>
-          <p>The entire RTX fleet operates on quantum-native zero-trust: QRNG · QKD · QSVM. Yesterday's intercepted traffic is still useless.</p>
-        </div>
+        <div class="node-card shield"><h4>The Air Shield Standard</h4><p>The entire RTX fleet operates on quantum-native zero-trust: QRNG · QKD · QSVM. Yesterday's intercepted traffic is still useless.</p></div>
       </div>
     </div>
-
     <div class="threat-grid">
-      <div class="threat-card">
-        <div class="threat-icon">⚠</div>
-        <h3>Shor's Algorithm</h3>
-        <p>Breaks RSA and ECC — the public-key math that protects every modern handshake — once a large enough quantum machine exists.</p>
-      </div>
-      <div class="threat-card">
-        <div class="threat-icon">↓</div>
-        <h3>Grover's Algorithm</h3>
-        <p>Weakens symmetric encryption. AES-256 effectively becomes AES-128. Still hard — but no longer "mathematically impossible."</p>
-      </div>
-      <div class="threat-card">
-        <div class="threat-icon">⌛</div>
-        <h3>Harvest Now, Decrypt Later</h3>
-        <p>Adversaries store encrypted traffic today to decrypt retroactively. The threat isn't future — it's <em>already running</em>.</p>
-      </div>
-      <div class="threat-card">
-        <div class="threat-icon">⚡</div>
-        <h3>AI-Accelerated Threats</h3>
-        <p>89% rise in AI-enabled attacks. Lateral breakout in 27 seconds. Quantum GANs will mutate malware faster than classical IDS can signature it.</p>
-      </div>
+      <div class="threat-card"><div class="threat-icon">⚠</div><h3>Shor's Algorithm</h3><p>Breaks RSA and ECC — the public-key math that protects every modern handshake — once a large enough quantum machine exists.</p></div>
+      <div class="threat-card"><div class="threat-icon">↓</div><h3>Grover's Algorithm</h3><p>Weakens symmetric encryption. AES-256 effectively becomes AES-128. Still hard — but no longer "mathematically impossible."</p></div>
+      <div class="threat-card"><div class="threat-icon">⌛</div><h3>Harvest Now, Decrypt Later</h3><p>Adversaries store encrypted traffic today to decrypt retroactively. The threat isn't future — it's <em>already running</em>.</p></div>
+      <div class="threat-card"><div class="threat-icon">⚡</div><h3>AI-Accelerated Threats</h3><p>89% rise in AI-enabled attacks. Lateral breakout in 27 seconds. Quantum GANs will mutate malware faster than classical IDS can signature it.</p></div>
     </div>
   </section>
 
-  <!-- ============================ SOLUTION ============================ -->
+  <!-- SOLUTION -->
   <section class="section alt" id="solution">
     <div class="section-head">
       <div class="section-tag">02 · THE ANSWER</div>
@@ -159,7 +129,6 @@
         unbreakable barrier between an adversary and your flight systems.
       </p>
     </div>
-
     <div class="layer-stack">
       <div class="layer">
         <div class="layer-num">L1</div>
@@ -188,17 +157,13 @@
     </div>
   </section>
 
-  <!-- ============================ ARCHITECTURE ============================ -->
+  <!-- ARCHITECTURE -->
   <section class="section" id="architecture">
     <div class="section-head">
       <div class="section-tag">03 · ARCHITECTURE</div>
       <h2>Inside <span class="accent">Air Shield</span></h2>
-      <p class="section-lead">
-        A retrofit-ready module that brings legacy avionics up to a quantum-native
-        security posture — without replacing the aircraft.
-      </p>
+      <p class="section-lead">A retrofit-ready module that brings legacy avionics up to a quantum-native security posture — without replacing the aircraft.</p>
     </div>
-
     <div class="arch-diagram">
       <div class="arch-plane">
         <div class="arch-label">AIRCRAFT</div>
@@ -223,28 +188,15 @@
         </div>
       </div>
     </div>
-
     <div class="arch-features">
-      <div class="feat">
-        <h4>Cold-Atom Navigation</h4>
-        <p>Quantum inertial sensors measure acceleration with atomic precision. Aircraft navigate globally for months without GPS — neutralizing spoofing and jamming forever.</p>
-      </div>
-      <div class="feat">
-        <h4>Tamper-Evident Flight Log</h4>
-        <p>Every flight data record is committed via QKD to ground as it happens. Any post-hoc tampering with the black box physically breaks the quantum hash — you can't fake the log.</p>
-      </div>
-      <div class="feat">
-        <h4>Cryptographic Agility Score</h4>
-        <p>A live 0–100 metric showing how quantum-ready each aircraft's crypto stack is. Executives get a single number to track fleet readiness across the entire RTX portfolio.</p>
-      </div>
-      <div class="feat">
-        <h4>Retrofit, Don't Replace</h4>
-        <p>Air Shield drops in as a module — not a fleet replacement. Thousands of fielded aircraft upgrade to PQC + QKD without scrapping their existing avionics suite. That's a product RTX can actually sell.</p>
-      </div>
+      <div class="feat"><h4>Cold-Atom Navigation</h4><p>Quantum inertial sensors measure acceleration with atomic precision. Aircraft navigate globally for months without GPS — neutralizing spoofing and jamming forever.</p></div>
+      <div class="feat"><h4>Tamper-Evident Flight Log</h4><p>Every flight data record is committed via QKD to ground as it happens. Any post-hoc tampering with the black box physically breaks the quantum hash — you can't fake the log.</p></div>
+      <div class="feat"><h4>Cryptographic Agility Score</h4><p>A live 0–100 metric showing how quantum-ready each aircraft's crypto stack is. Executives get a single number to track fleet readiness across the entire RTX portfolio.</p></div>
+      <div class="feat"><h4>Retrofit, Don't Replace</h4><p>Air Shield drops in as a module — not a fleet replacement. Thousands of fielded aircraft upgrade to PQC + QKD without scrapping their existing avionics suite. That's a product RTX can actually sell.</p></div>
     </div>
   </section>
 
-  <!-- ============================ DASHBOARD (LIVE DEMO) ============================ -->
+  <!-- DEMO CTA -->
   <section class="section alt" id="dashboard">
     <div class="section-head">
       <div class="section-tag">04 · LIVE DEMO</div>
@@ -252,265 +204,39 @@
       <p class="section-lead">
         A live, interactive simulation of the Air Shield operator interface —
         the same view a ground controller or SOC analyst would monitor in 2050.
-        Click through the tabs, explore the globe, watch the threat feed, track the fleet.
+        Full-screen dashboard with a live globe, threat feed, fleet registry, and quantum key vault.
       </p>
     </div>
-
-    <div class="console" id="console">
-      <button class="fs-btn" id="fullscreenBtn" title="Expand to full screen">
-        <svg class="fs-open" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5"/></svg>
-        <svg class="fs-close" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v5H3M16 3v5h5M8 21v-5H3M16 21v-5h5"/></svg>
-        <span class="fs-open">Fullscreen</span>
-        <span class="fs-close">Exit</span>
-      </button>
-      <!-- LEFT SIDEBAR -->
-      <div class="console-sidebar">
-        <div class="sb-header">
-          <img src="assets/logo.svg" alt="" class="sb-logo" />
-          <div>
-            <div class="sb-title">Air Shield</div>
-            <div class="sb-sub">v2.0.50 · QUANTUM</div>
-          </div>
+    <div class="demo-cta">
+      <a href="console.html" class="demo-card">
+        <div class="demo-card-glow"></div>
+        <div class="demo-card-content">
+          <div class="demo-icon">◐</div>
+          <h3>Open Command Console</h3>
+          <p>Full-screen interactive dashboard — live 3D globe with clickable aircraft, streaming threat feed, searchable flight registry, crypto agility scores, and rotating quantum keys.</p>
+          <span class="demo-link">Launch Console
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
         </div>
-        <nav class="sb-nav">
-          <!-- Home -->
-          <button class="sb-item active" data-panel="overview" title="Overview">
-            <span class="sb-ico">⌂</span> <span class="sb-label">Overview</span>
-          </button>
-          <!-- Globe -->
-          <button class="sb-item" data-panel="globe" title="Live Globe">
-            <span class="sb-ico">◐</span> <span class="sb-label">Live Globe</span>
-          </button>
-          <!-- Fleet (dropdown) -->
-          <div class="sb-dropdown">
-            <button class="sb-item sb-dd-toggle" title="Fleet" data-dd="fleet">
-              <span class="sb-ico">✈</span> <span class="sb-label">Fleet</span>
-              <span class="sb-arrow">▾</span>
-            </button>
-            <div class="sb-dd-menu" id="dd-fleet">
-              <button class="sb-dd-item" data-panel="registry">Flight Registry</button>
-              <button class="sb-dd-item" data-panel="fleet">Status Grid</button>
-            </div>
-          </div>
-          <!-- Threats (dropdown) -->
-          <div class="sb-dropdown">
-            <button class="sb-item sb-dd-toggle" title="Threats" data-dd="threats">
-              <span class="sb-ico">⚠</span> <span class="sb-label">Threats</span>
-              <span class="sb-arrow">▾</span>
-              <span class="sb-badge" id="threatCount">0</span>
-            </button>
-            <div class="sb-dd-menu" id="dd-threats">
-              <button class="sb-dd-item" data-panel="threats">Live Feed</button>
-              <button class="sb-dd-item" data-panel="crypto">Crypto Agility</button>
-            </div>
-          </div>
-          <!-- Keys -->
-          <button class="sb-item" data-panel="keys" title="Quantum Keys">
-            <span class="sb-ico">◈</span> <span class="sb-label">Keys</span>
-          </button>
-          <!-- Settings (dropdown) -->
-          <div class="sb-dropdown">
-            <button class="sb-item sb-dd-toggle" title="Settings" data-dd="settings">
-              <span class="sb-ico">⚙</span> <span class="sb-label">Settings</span>
-              <span class="sb-arrow">▾</span>
-            </button>
-            <div class="sb-dd-menu" id="dd-settings">
-              <button class="sb-dd-item" data-panel="settings-general">General</button>
-              <button class="sb-dd-item" data-panel="settings-security">Security Policy</button>
-            </div>
-          </div>
-        </nav>
-        <div class="sb-footer">
-          <div class="sb-status">
-            <span class="pulse-dot ok"></span>
-            <span>QUANTUM LINK · ONLINE</span>
-          </div>
-          <div class="sb-time" id="sbTime">--:--:-- UTC</div>
-        </div>
-      </div>
-
-      <!-- MAIN -->
-      <div class="console-main">
-        <!-- Search bar (sticky) -->
-        <div class="console-search">
-          <div class="search-box">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="flightSearch" placeholder="Search flights by ID, route, or aircraft type…" />
-            <kbd>⌘K</kbd>
-          </div>
-        </div>
-
-        <!-- OVERVIEW -->
-        <div class="panel active" id="panel-overview">
-          <div class="panel-head">
-            <h3>System Overview</h3>
-            <div class="panel-meta">FLEET-WIDE · LIVE</div>
-          </div>
-          <div class="kpi-grid">
-            <div class="kpi">
-              <div class="kpi-label">Aircraft Protected</div>
-              <div class="kpi-value" data-count-kpi="247" id="kpiAircraft">0</div>
-              <div class="kpi-delta up">▲ 12 this week</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Threats Blocked (24h)</div>
-              <div class="kpi-value" data-count-kpi="1842" id="kpiBlocked">0</div>
-              <div class="kpi-delta up">▲ 3.4%</div>
-            </div>
-            <div class="kpi">
-              <div class="kpi-label">Quantum Keys Issued</div>
-              <div class="kpi-value" data-count-kpi="51238" id="kpiKeys">0</div>
-              <div class="kpi-delta up">▲ stable</div>
-            </div>
-            <div class="kpi danger-kpi">
-              <div class="kpi-label">Crypto Agility Score</div>
-              <div class="kpi-value" id="kpiScore">94<span class="kpi-suffix">/100</span></div>
-              <div class="kpi-delta">Fleet-ready</div>
-            </div>
-          </div>
-          <div class="ov-grid">
-            <div class="card span-2">
-              <div class="card-head">
-                <h4>Threat Activity — Last 60s</h4>
-                <div class="card-tag live">LIVE</div>
-              </div>
-              <canvas id="activityChart" class="chart" height="220"></canvas>
-            </div>
-            <div class="card">
-              <div class="card-head"><h4>Threat Types</h4></div>
-              <div class="bar-list" id="threatTypes">
-                <div class="bar-row"><span>SNDL Intercept</span><div class="bar"><div style="width:42%"></div></div><span>42</span></div>
-                <div class="bar-row"><span>QGAN Malware</span><div class="bar"><div style="width:28%"></div></div><span>28</span></div>
-                <div class="bar-row"><span>GPS Spoof</span><div class="bar"><div style="width:14%"></div></div><span>14</span></div>
-                <div class="bar-row"><span>Handshake Probe</span><div class="bar"><div style="width:11%"></div></div><span>11</span></div>
-                <div class="bar-row"><span>Insider</span><div class="bar"><div style="width:5%"></div></div><span>5</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- GLOBE -->
-        <div class="panel" id="panel-globe">
-          <div class="panel-head">
-            <h3>Live Globe — Protected Aircraft Worldwide</h3>
-            <div class="panel-meta"><span class="pulse-dot ok"></span> TRACKING <span id="globeCount">247</span> AIRCRAFT</div>
-          </div>
-          <div class="globe-wrap">
-            <canvas id="globeCanvas"></canvas>
-            <div class="globe-info" id="globeInfo">
-              <div class="gi-head">SELECT AN AIRCRAFT</div>
-              <div class="gi-empty">Click any red dot on the globe to view live flight data.</div>
-            </div>
-            <div class="globe-legend">
-              <div><span class="legend-dot" style="background:#ff3131"></span> Protected Aircraft</div>
-              <div><span class="legend-dot" style="background:#660018"></span> Threat Detected</div>
-              <div><span class="legend-line"></span> Active QKD Link</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- FLIGHT REGISTRY -->
-        <div class="panel" id="panel-registry">
-          <div class="panel-head">
-            <h3>Flight Registry</h3>
-            <div class="panel-meta">ALL ACTIVE FLIGHTS</div>
-          </div>
-          <div class="registry-list" id="registryList"></div>
-        </div>
-
-        <!-- FLEET STATUS GRID -->
-        <div class="panel" id="panel-fleet">
-          <div class="panel-head">
-            <h3>Fleet Status Grid</h3>
-            <div class="panel-meta">247 AIRCRAFT</div>
-          </div>
-          <div class="fleet-grid" id="fleetGrid"></div>
-        </div>
-
-        <!-- THREAT FEED -->
-        <div class="panel" id="panel-threats">
-          <div class="panel-head">
-            <h3>Live Threat Feed</h3>
-            <div class="panel-meta"><span class="pulse-dot warn"></span> STREAMING</div>
-          </div>
-          <div class="feed" id="threatFeed"></div>
-        </div>
-
-        <!-- CRYPTO AGILITY -->
-        <div class="panel" id="panel-crypto">
-          <div class="panel-head">
-            <h3>Cryptographic Agility</h3>
-            <div class="panel-meta">FIPS 203 / 204 COMPLIANT</div>
-          </div>
-          <div class="crypto-list" id="cryptoList"></div>
-        </div>
-
-        <!-- QUANTUM KEYS -->
-        <div class="panel" id="panel-keys">
-          <div class="panel-head">
-            <h3>Quantum Key Vault</h3>
-            <div class="panel-meta">QKD + QRNG</div>
-          </div>
-          <div class="key-grid" id="keyGrid"></div>
-        </div>
-
-        <!-- SETTINGS (general) -->
-        <div class="panel" id="panel-settings-general">
-          <div class="panel-head"><h3>Settings — General</h3></div>
-          <div class="settings-grid">
-            <div class="set-row"><div><div class="set-name">Auto-rotate quantum keys</div><div class="set-desc">Rotate QKD session keys every 60 seconds</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">QSVM threat detection</div><div class="set-desc">Real-time quantum machine learning anomaly detection</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">Cold-atom nav fallback</div><div class="set-desc">Switch to Q-INS when GPS signal is jammed or spoofed</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">Legacy RSA fallback</div><div class="set-desc">Allow classical RSA handshakes (NOT RECOMMENDED)</div></div><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
-          </div>
-        </div>
-
-        <!-- SETTINGS (security) -->
-        <div class="panel" id="panel-settings-security">
-          <div class="panel-head"><h3>Settings — Security Policy</h3></div>
-          <div class="settings-grid">
-            <div class="set-row"><div><div class="set-name">Block classical handshakes</div><div class="set-desc">Reject any non-PQC key exchange</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">QKD interception alert</div><div class="set-desc">Notify on any photon-state collapse during key distribution</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">Tamper-evident log seal</div><div class="set-desc">Commit all flight data to ground via QKD hash chain</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-            <div class="set-row"><div><div class="set-name">Auto-quarantine</div><div class="set-desc">Isolate any subsystem flagged by QSVM</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          </div>
-        </div>
-
-      </div>
+      </a>
     </div>
   </section>
 
-  <!-- ============================ ROADMAP ============================ -->
+  <!-- ROADMAP -->
   <section class="section" id="roadmap">
     <div class="section-head">
       <div class="section-tag">05 · ROADMAP</div>
       <h2>From <span class="accent">2026</span> to <span class="accent">2050</span></h2>
     </div>
     <div class="roadmap">
-      <div class="road-item">
-        <div class="road-year">2026</div>
-        <h4>Concept &amp; Prototype</h4>
-        <p>PQC migration inventory. ML-KEM / ML-DSA pilots. SNDL advisory published. Air Shield architecture drafted.</p>
-      </div>
-      <div class="road-item">
-        <div class="road-year">2029</div>
-        <h4>Hardware Anchor</h4>
-        <p>Microsoft Majorana 2 ships. First QKD satellite-to-aircraft links. Air Shield retrofit module fielded on RTX platforms.</p>
-      </div>
-      <div class="road-item">
-        <div class="road-year">2035</div>
-        <h4>Q-Day Preparedness</h4>
-        <p>Fleet-wide PQC migration complete. QSVM firewalls standard. Cold-atom nav deployed on all new airframes.</p>
-      </div>
-      <div class="road-item">
-        <div class="road-year">2050</div>
-        <h4>Quantum-Native Skies</h4>
-        <p>Air Shield is the default. Tamper-evident logs, quantum navigation, QSVM defense — the new standard for flight security.</p>
-      </div>
+      <div class="road-item"><div class="road-year">2026</div><h4>Concept &amp; Prototype</h4><p>PQC migration inventory. ML-KEM / ML-DSA pilots. SNDL advisory published. Air Shield architecture drafted.</p></div>
+      <div class="road-item"><div class="road-year">2029</div><h4>Hardware Anchor</h4><p>Microsoft Majorana 2 ships. First QKD satellite-to-aircraft links. Air Shield retrofit module fielded on RTX platforms.</p></div>
+      <div class="road-item"><div class="road-year">2035</div><h4>Q-Day Preparedness</h4><p>Fleet-wide PQC migration complete. QSVM firewalls standard. Cold-atom nav deployed on all new airframes.</p></div>
+      <div class="road-item"><div class="road-year">2050</div><h4>Quantum-Native Skies</h4><p>Air Shield is the default. Tamper-evident logs, quantum navigation, QSVM defense — the new standard for flight security.</p></div>
     </div>
   </section>
 
-  <!-- ============================ FOOTER ============================ -->
+  <!-- FOOTER -->
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">

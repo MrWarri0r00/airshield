@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Shield — Command Console</title>
+  <meta name="description" content="Air Shield live command console — real-time quantum cybersecurity dashboard." />
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { margin: 0; overflow: hidden; }
+    .console-page { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
+    .console-page .console { display: grid; grid-template-columns: 220px 1fr; flex: 1; min-height: 0; border: none; border-radius: 0; box-shadow: none; }
+    .console-page .console-main { padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+    .console-page .panel { padding: 24px; overflow-y: auto; flex: 1; }
+    .console-page .globe-wrap { height: calc(100vh - 120px); }
+    .console-page .feed, .console-page .fleet-grid, .console-page .registry-list { max-height: none; flex: 1; }
+    .console-page .fs-btn { display: none; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 48px; background: var(--bg-2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-logo { width: 26px; height: 26px; }
+    .topbar-title { font-weight: 800; font-size: 14px; letter-spacing: 1px; }
+    .topbar-title .accent { color: var(--accent); }
+    .topbar-meta { font-size: 10px; letter-spacing: 1.5px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-size: 12px; font-weight: 600; transition: all 0.2s; text-decoration: none; }
+    .back-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .theme-toggle { background: var(--panel-2); border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-dim); transition: all 0.2s; cursor: pointer; }
+    .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+    .icon-sun { display: none; }
+    [data-theme="light"] .icon-sun { display: block; }
+    [data-theme="light"] .icon-moon { display: none; }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="console-page">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <img src="assets/logo.svg" alt="" class="topbar-logo" />
+        <div>
+          <div class="topbar-title">AIR<span class="accent">SHIELD</span> · COMMAND CONSOLE</div>
+          <div class="topbar-meta">RAYTHEON · RTX 2026 · v2.0.50 QUANTUM</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <a href="/" class="back-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back to Site
+        </a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="console" id="console">
+      <!-- LEFT SIDEBAR -->
+      <div class="console-sidebar">
+        <div class="sb-header">
+          <img src="assets/logo.svg" alt="" class="sb-logo" />
+          <div>
+            <div class="sb-title">Air Shield</div>
+            <div class="sb-sub">v2.0.50 · QUANTUM</div>
+          </div>
+        </div>
+        <nav class="sb-nav">
+          <button class="sb-item active" data-panel="overview" title="Overview">
+            <span class="sb-ico">⌂</span> <span class="sb-label">Overview</span>
+          </button>
+          <button class="sb-item" data-panel="globe" title="Live Globe">
+            <span class="sb-ico">◐</span> <span class="sb-label">Live Globe</span>
+          </button>
+          <div class="sb-dropdown">
+            <button class="sb-item sb-dd-toggle" title="Fleet" data-dd="fleet">
+              <span class="sb-ico">✈</span> <span class="sb-label">Fleet</span>
+              <span class="sb-arrow">▾</span>
+            </button>
+            <div class="sb-dd-menu" id="dd-fleet">
+              <button class="sb-dd-item" data-panel="registry">Flight Registry</button>
+              <button class="sb-dd-item" data-panel="fleet">Status Grid</button>
+            </div>
+          </div>
+          <div class="sb-dropdown">
+            <button class="sb-item sb-dd-toggle" title="Threats" data-dd="threats">
+              <span class="sb-ico">⚠</span> <span class="sb-label">Threats</span>
+              <span class="sb-arrow">▾</span>
+              <span class="sb-badge" id="threatCount">0</span>
+            </button>
+            <div class="sb-dd-menu" id="dd-threats">
+              <button class="sb-dd-item" data-panel="threats">Live Feed</button>
+              <button class="sb-dd-item" data-panel="crypto">Crypto Agility</button>
+            </div>
+          </div>
+          <button class="sb-item" data-panel="keys" title="Quantum Keys">
+            <span class="sb-ico">◈</span> <span class="sb-label">Keys</span>
+          </button>
+          <div class="sb-dropdown">
+            <button class="sb-item sb-dd-toggle" title="Settings" data-dd="settings">
+              <span class="sb-ico">⚙</span> <span class="sb-label">Settings</span>
+              <span class="sb-arrow">▾</span>
+            </button>
+            <div class="sb-dd-menu" id="dd-settings">
+              <button class="sb-dd-item" data-panel="settings-general">General</button>
+              <button class="sb-dd-item" data-panel="settings-security">Security Policy</button>
+            </div>
+          </div>
+        </nav>
+        <div class="sb-footer">
+          <div class="sb-status">
+            <span class="pulse-dot ok"></span>
+            <span>QUANTUM LINK · ONLINE</span>
+          </div>
+          <div class="sb-time" id="sbTime">--:--:-- UTC</div>
+        </div>
+      </div>
+
+      <!-- MAIN -->
+      <div class="console-main">
+        <!-- SEARCH -->
+        <div class="console-search">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="flightSearch" placeholder="Search flights by ID, route, or aircraft type…" />
+            <kbd>⌘K</kbd>
+          </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="panel active" id="panel-overview">
+          <div class="panel-head">
+            <h3>System Overview</h3>
+            <div class="panel-meta">FLEET-WIDE · LIVE</div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Aircraft Protected</div><div class="kpi-value" data-count-kpi="247">0</div><div class="kpi-delta up">▲ 12 this week</div></div>
+            <div class="kpi"><div class="kpi-label">Threats Blocked (24h)</div><div class="kpi-value" data-count-kpi="1842">0</div><div class="kpi-delta up">▲ 3.4%</div></div>
+            <div class="kpi"><div class="kpi-label">Quantum Keys Issued</div><div class="kpi-value" data-count-kpi="51238">0</div><div class="kpi-delta up">▲ stable</div></div>
+            <div class="kpi danger-kpi"><div class="kpi-label">Crypto Agility Score</div><div class="kpi-value">94<span class="kpi-suffix">/100</span></div><div class="kpi-delta">Fleet-ready</div></div>
+          </div>
+          <div class="ov-grid">
+            <div class="card span-2">
+              <div class="card-head"><h4>Threat Activity — Last 60s</h4><div class="card-tag live">LIVE</div></div>
+              <canvas id="activityChart" class="chart" height="220"></canvas>
+            </div>
+            <div class="card">
+              <div class="card-head"><h4>Threat Types</h4></div>
+              <div class="bar-list">
+                <div class="bar-row"><span>SNDL Intercept</span><div class="bar"><div style="width:42%"></div></div><span>42</span></div>
+                <div class="bar-row"><span>QGAN Malware</span><div class="bar"><div style="width:28%"></div></div><span>28</span></div>
+                <div class="bar-row"><span>GPS Spoof</span><div class="bar"><div style="width:14%"></div></div><span>14</span></div>
+                <div class="bar-row"><span>Handshake Probe</span><div class="bar"><div style="width:11%"></div></div><span>11</span></div>
+                <div class="bar-row"><span>Insider</span><div class="bar"><div style="width:5%"></div></div><span>5</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GLOBE -->
+        <div class="panel" id="panel-globe">
+          <div class="panel-head">
+            <h3>Live Globe — Protected Aircraft Worldwide</h3>
+            <div class="panel-meta"><span class="pulse-dot ok"></span> TRACKING <span id="globeCount">247</span> AIRCRAFT</div>
+          </div>
+          <div class="globe-wrap">
+            <canvas id="globeCanvas"></canvas>
+            <div class="globe-info" id="globeInfo">
+              <div class="gi-head">SELECT AN AIRCRAFT</div>
+              <div class="gi-empty">Click any red dot on the globe to view live flight data.</div>
+            </div>
+            <div class="globe-legend">
+              <div><span class="legend-dot" style="background:#ff3131"></span> Protected Aircraft</div>
+              <div><span class="legend-dot" style="background:#660018"></span> Threat Detected</div>
+              <div><span class="legend-line"></span> Active QKD Link</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRY -->
+        <div class="panel" id="panel-registry">
+          <div class="panel-head"><h3>Flight Registry</h3><div class="panel-meta">ALL ACTIVE FLIGHTS</div></div>
+          <div class="registry-list" id="registryList"></div>
+        </div>
+
+        <!-- FLEET -->
+        <div class="panel" id="panel-fleet">
+          <div class="panel-head"><h3>Fleet Status Grid</h3><div class="panel-meta">247 AIRCRAFT</div></div>
+          <div class="fleet-grid" id="fleetGrid"></div>
+        </div>
+
+        <!-- THREATS -->
+        <div class="panel" id="panel-threats">
+          <div class="panel-head"><h3>Live Threat Feed</h3><div class="panel-meta"><span class="pulse-dot warn"></span> STREAMING</div></div>
+          <div class="feed" id="threatFeed"></div>
+        </div>
+
+        <!-- CRYPTO -->
+        <div class="panel" id="panel-crypto">
+          <div class="panel-head"><h3>Cryptographic Agility</h3><div class="panel-meta">FIPS 203 / 204 COMPLIANT</div></div>
+          <div class="crypto-list" id="cryptoList"></div>
+        </div>
+
+        <!-- KEYS -->
+        <div class="panel" id="panel-keys">
+          <div class="panel-head"><h3>Quantum Key Vault</h3><div class="panel-meta">QKD + QRNG</div></div>
+          <div class="key-grid" id="keyGrid"></div>
+        </div>
+
+        <!-- SETTINGS GENERAL -->
+        <div class="panel" id="panel-settings-general">
+          <div class="panel-head"><h3>Settings — General</h3></div>
+          <div class="settings-grid">
+            <div class="set-row"><div><div class="set-name">Auto-rotate quantum keys</div><div class="set-desc">Rotate QKD session keys every 60 seconds</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">QSVM threat detection</div><div class="set-desc">Real-time quantum machine learning anomaly detection</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">Cold-atom nav fallback</div><div class="set-desc">Switch to Q-INS when GPS signal is jammed or spoofed</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">Legacy RSA fallback</div><div class="set-desc">Allow classical RSA handshakes (NOT RECOMMENDED)</div></div><label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+          </div>
+        </div>
+
+        <!-- SETTINGS SECURITY -->
+        <div class="panel" id="panel-settings-security">
+          <div class="panel-head"><h3>Settings — Security Policy</h3></div>
+          <div class="settings-grid">
+            <div class="set-row"><div><div class="set-name">Block classical handshakes</div><div class="set-desc">Reject any non-PQC key exchange</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">QKD interception alert</div><div class="set-desc">Notify on any photon-state collapse during key distribution</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">Tamper-evident log seal</div><div class="set-desc">Commit all flight data to ground via QKD hash chain</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+            <div class="set-row"><div><div class="set-name">Auto-quarantine</div><div class="set-desc">Isolate any subsystem flagged by QSVM</div></div><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script src="js/app.js"></script>
+</body>
+</html>
