@@ -404,13 +404,14 @@ if (globeCanvas) {
   let rotY = 0, rotX = -0.3;
   let dragging = false, lastX = 0, lastY = 0;
   let autoRotate = true;
+  let zoom = 1; // 1 = default, >1 = zoomed in
 
   globeCanvas.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; autoRotate = false; });
   window.addEventListener('mouseup', () => { dragging = false; });
   window.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    rotY += (e.clientX - lastX) * 0.005;
-    rotX += (e.clientY - lastY) * 0.005;
+    rotY += (e.clientX - lastX) * 0.005 / zoom;
+    rotX += (e.clientY - lastY) * 0.005 / zoom;
     rotX = Math.max(-1.2, Math.min(1.2, rotX));
     lastX = e.clientX; lastY = e.clientY;
   });
@@ -419,10 +420,35 @@ if (globeCanvas) {
   globeCanvas.addEventListener('touchmove', (e) => {
     if (!dragging) return;
     e.preventDefault();
-    rotY += (e.touches[0].clientX - lastX) * 0.005;
-    rotX += (e.touches[0].clientY - lastY) * 0.005;
+    rotY += (e.touches[0].clientX - lastX) * 0.005 / zoom;
+    rotX += (e.touches[0].clientY - lastY) * 0.005 / zoom;
     rotX = Math.max(-1.2, Math.min(1.2, rotX));
     lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }, { passive: false });
+
+  // Zoom with mouse wheel
+  globeCanvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    zoom = Math.max(1, Math.min(6, zoom * delta));
+  }, { passive: false });
+
+  // Pinch zoom for touch
+  let pinchDist = 0;
+  globeCanvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    }
+  });
+  globeCanvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const newDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (pinchDist > 0) {
+        zoom = Math.max(1, Math.min(6, zoom * (newDist / pinchDist)));
+      }
+      pinchDist = newDist;
+    }
   }, { passive: false });
 
   function project(lat, lon, r) {
@@ -558,7 +584,8 @@ if (globeCanvas) {
   function drawGlobe() {
     g.clearRect(0, 0, GW, GH);
     const cx = GW / 2, cy = GH / 2;
-    const r = Math.min(GW, GH) * 0.38;
+    const baseR = Math.min(GW, GH) * 0.38;
+    const r = baseR * zoom;
 
     // sphere background — FlightAware beta uses deep navy (#000E29)
     const grad = g.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
@@ -577,8 +604,18 @@ if (globeCanvas) {
     g.arc(cx, cy, r, 0, Math.PI * 2);
     g.stroke();
 
+    // Detail scales with zoom
+    const detailLevel = zoom; // 1 = normal, higher = more detail
+    const borderOpacity = Math.min(0.55 + (zoom - 1) * 0.15, 0.95);
+    const borderFillOpacity = Math.min(0.35 + (zoom - 1) * 0.1, 0.6);
+    const gridOpacity = zoom > 2 ? 0.08 : 0.04;
+    const labelOpacity = Math.min(0.5 + (zoom - 1) * 0.3, 1);
+    const labelSize = Math.min(9 + (zoom - 1) * 3, 16);
+    const airportDotSize = Math.min(3 + (zoom - 1) * 1.5, 7);
+    const planeScale = Math.min(1 + (zoom - 1) * 0.3, 2.5);
+
     // grid lines
-    g.strokeStyle = 'rgba(255,255,255,0.04)';
+    g.strokeStyle = `rgba(255,255,255,${gridOpacity})`;
     g.lineWidth = 0.5 * devicePixelRatio;
     for (let lat = -60; lat <= 60; lat += 30) {
       g.beginPath();
@@ -601,9 +638,9 @@ if (globeCanvas) {
 
     // draw actual country borders from geojson
     if (WORLD_GEOJSON && WORLD_GEOJSON.features) {
-      g.strokeStyle = 'rgba(138,150,180,0.55)';
-      g.fillStyle = 'rgba(40,55,85,0.35)';
-      g.lineWidth = 0.8 * devicePixelRatio;
+      g.strokeStyle = `rgba(138,150,180,${borderOpacity})`;
+      g.fillStyle = `rgba(40,55,85,${borderFillOpacity})`;
+      g.lineWidth = Math.min(0.8 + (zoom - 1) * 0.4, 2) * devicePixelRatio;
       WORLD_GEOJSON.features.forEach((feat) => {
         const geom = feat.geometry;
         if (!geom) return;
@@ -641,11 +678,11 @@ if (globeCanvas) {
         if (p.z > 0) {
           const sx = cx + p.x, sy = cy - p.y;
           g.beginPath();
-          g.arc(sx, sy, 3 * devicePixelRatio, 0, Math.PI * 2);
+          g.arc(sx, sy, airportDotSize * devicePixelRatio, 0, Math.PI * 2);
           g.fill();
-          // label
-          g.font = `${9 * devicePixelRatio}px JetBrains Mono`;
-          g.fillStyle = 'rgba(150,180,220,0.8)';
+          // label (bigger and more visible when zoomed)
+          g.font = `${labelSize * devicePixelRatio}px JetBrains Mono`;
+          g.fillStyle = `rgba(150,180,220,${labelOpacity})`;
           g.fillText(code, sx + 5 * devicePixelRatio, sy + 3 * devicePixelRatio);
           g.fillStyle = 'rgba(120,200,255,0.7)';
         }
@@ -711,7 +748,7 @@ if (globeCanvas) {
         const alpha = Math.max(0.35, p.z / r + 0.35);
         let color = altColor(fl.alt);
         if (fl.threat) color = '#660018';
-        let iconSize = (selectedFlight === fl ? 1.6 : 1) * devicePixelRatio;
+        let iconSize = (selectedFlight === fl ? 1.6 : 1) * planeScale * devicePixelRatio;
         // search highlight
         if (fl.searchMatch) {
           color = '#ffcc00';
@@ -766,4 +803,14 @@ if (globeCanvas) {
   }, 2000);
 
   drawGlobe();
+
+  // Zoom buttons
+  const zoomInBtn = document.getElementById('zoomIn');
+  const zoomOutBtn = document.getElementById('zoomOut');
+  const zoomLevelEl = document.getElementById('zoomLevel');
+  function updateZoomDisplay() { if (zoomLevelEl) zoomLevelEl.textContent = zoom.toFixed(1) + 'x'; }
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => { zoom = Math.min(6, zoom * 1.3); updateZoomDisplay(); });
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => { zoom = Math.max(1, zoom / 1.3); updateZoomDisplay(); });
+  // update display when wheel zoom used
+  globeCanvas.addEventListener('wheel', () => setTimeout(updateZoomDisplay, 50));
 }

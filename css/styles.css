@@ -295,6 +295,10 @@ button { font-family: inherit; cursor: pointer; }
 .globe-legend { position: absolute; bottom: 16px; left: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 11px; color: var(--text-dim); display: flex; flex-direction: column; gap: 6px; }
 .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 .legend-line { display: inline-block; width: 18px; height: 2px; background: var(--accent); margin-right: 6px; vertical-align: middle; box-shadow: 0 0 6px var(--accent); }
+.globe-zoom { position: absolute; bottom: 16px; right: 16px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.zoom-btn { width: 32px; height: 32px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text); font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+.zoom-btn:hover { color: var(--accent); border-color: var(--accent); }
+.zoom-level { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-faint); }
 
 /* ============================================================ REGISTRY */
 .registry-list { display: flex; flex-direction: column; gap: 6px; max-height: 520px; overflow-y: auto; }
