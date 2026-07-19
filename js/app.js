@@ -391,31 +391,35 @@ if (globeCanvas) {
     return { x: x2, y: y2, z: z3 };
   }
 
-  // Plane icon path (small airplane silhouette)
-  function drawPlaneIcon(ctx, x, y, size, color, alpha) {
+  // Plane icon path (small airplane silhouette) — rotated to heading
+  function drawPlaneIcon(ctx, x, y, size, color, alpha, heading) {
     ctx.save();
     ctx.translate(x, y);
+    // rotate so plane points in its heading direction
+    // default plane icon points up (north = 0°), so rotate by heading
+    ctx.rotate((heading - 90) * Math.PI / 180);
     ctx.scale(size, size);
     ctx.globalAlpha = alpha;
     ctx.fillStyle = color;
     ctx.beginPath();
-    // simple plane shape pointing up
-    ctx.moveTo(0, -7);          // nose
-    ctx.lineTo(1, -2);          // right body
-    ctx.lineTo(6, 0);           // right wing tip
-    ctx.lineTo(6, 2);
-    ctx.lineTo(1, 2);
-    ctx.lineTo(1.5, 5);          // right tail
-    ctx.lineTo(3, 7);
-    ctx.lineTo(3, 8);
-    ctx.lineTo(0, 7);           // tail center
-    ctx.lineTo(-3, 8);
-    ctx.lineTo(-3, 7);
-    ctx.lineTo(-1.5, 5);
-    ctx.lineTo(-1, 2);
-    ctx.lineTo(-6, 2);
-    ctx.lineTo(-6, 0);
-    ctx.lineTo(-1, -2);
+    // plane silhouette pointing right (east = 90°), we rotate to match heading
+    // nose at right, tail at left
+    ctx.moveTo(8, 0);            // nose
+    ctx.lineTo(2, -1);           // top-right body
+    ctx.lineTo(0, -6);          // top wing tip
+    ctx.lineTo(-2, -6);
+    ctx.lineTo(-2, -1);
+    ctx.lineTo(-5, -1.5);       // top tail
+    ctx.lineTo(-7, -3);
+    ctx.lineTo(-8, -3);
+    ctx.lineTo(-7, 0);          // tail center
+    ctx.lineTo(-8, 3);
+    ctx.lineTo(-7, 3);
+    ctx.lineTo(-5, 1.5);        // bottom tail
+    ctx.lineTo(-2, 1);
+    ctx.lineTo(-2, 6);          // bottom wing
+    ctx.lineTo(0, 6);
+    ctx.lineTo(2, 1);           // bottom-right body
     ctx.closePath();
     ctx.fill();
     ctx.restore();
@@ -569,7 +573,7 @@ if (globeCanvas) {
         // glow
         g.shadowColor = color;
         g.shadowBlur = 10 * devicePixelRatio;
-        drawPlaneIcon(g, sx, sy, iconSize, color, alpha);
+        drawPlaneIcon(g, sx, sy, iconSize, color, alpha, fl.heading);
         g.shadowBlur = 0;
 
         if (selectedFlight === fl) {
