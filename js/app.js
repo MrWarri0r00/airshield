@@ -1,3 +1,4 @@
+// Air Shield v4.0 - fixed feedFilter hoisting
 /* ============================================================
    AIR SHIELD — Interactive logic v2
    ============================================================ */
@@ -286,45 +287,39 @@ function generateFallbackFlights() {
 // Generate immediately
 generateFallbackFlights();
 
-// Fetch real aircraft from OpenSky API, rename to RTX-####, keep real positions
+// Fetch real aircraft from embedded JSON (fetched server-side to avoid CORS)
 async function fetchRealFlights() {
   try {
-    const res = await fetch('https://opensky-network.org/api/states/all');
+    const res = await fetch('assets/real_flights.json');
     const data = await res.json();
-    const states = (data.states || []).filter(s => s[5] && s[6] && !s[8]); // has position, not on ground
-    // Take up to 80 random aircraft, spread across globe
-    const shuffled = states.sort(() => Math.random() - 0.5).slice(0, 80);
-    FLIGHTS = shuffled.map((s, i) => {
+    const realFlights = data.flights || [];
+    FLIGHTS = realFlights.slice(0, 80).map((f, i) => {
       const route = ROUTES[i % ROUTES.length];
       const fromCoords = AIRPORTS[route[0]] || [40, -74];
       const toCoords = AIRPORTS[route[1]] || [51, 0];
-      const lat = s[6]; // real latitude
-      const lon = s[5]; // real longitude
-      const realAlt = s[7] ? Math.round(s[7] * 3.28084) : Math.floor(Math.random() * 30000) + 30000; // meters→feet
-      const realSpd = s[9] ? Math.round(s[9] * 1.94384) : Math.floor(Math.random() * 200) + 480; // m/s→knots
-      const realHeading = s[10] ? Math.round(s[10]) : Math.floor(Math.random() * 360);
       const score = Math.floor(Math.random() * 18) + 82;
       const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
-      const threat = Math.random() < 0.08;
       return {
-        id: 'RTX-' + (1000 + i),
+        id: f.id,
         from: route[0], to: route[1],
         fromCoords, toCoords,
         type: TYPES[Math.floor(Math.random() * TYPES.length)],
-        lat, lon, score, status, threat,
-        heading: realHeading,
-        alt: realAlt,
-        spd: realSpd,
+        lat: f.lat, lon: f.lon,
+        score, status,
+        threat: Math.random() < 0.08,
+        heading: f.heading || Math.floor(Math.random() * 360),
+        alt: f.alt_ft || Math.floor(Math.random() * 30000) + 30000,
+        spd: f.speed_kts || Math.floor(Math.random() * 200) + 480,
         qkd: Math.random() > 0.15,
         progress: 0.15 + Math.random() * 0.7,
         trail: [],
-        realCallsign: (s[1] || '').trim(),
-        realCountry: s[2] || 'Unknown',
+        realCallsign: f.callsign,
+        realCountry: f.country,
       };
     });
-    console.log(`Loaded ${FLIGHTS.length} real aircraft from OpenSky`);
+    console.log(`Loaded ${FLIGHTS.length} real aircraft from embedded JSON`);
   } catch (e) {
-    console.warn('OpenSky fetch failed, using fallback flights:', e.message);
+    console.warn('Real flights JSON failed, using fallback:', e.message);
     generateFallbackFlights();
   }
 }
