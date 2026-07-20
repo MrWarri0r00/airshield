@@ -396,440 +396,370 @@ function updateExposure() {
 updateExposure();
 setInterval(updateExposure, 2500);
 
-/* ============================================================ 3D GLOBE */
-const globeCanvas = document.getElementById('globeCanvas');
-let WORLD_GEOJSON = null;
+/* ============================================================ MAPLIBRE GLOBE */
+const mapContainer = document.getElementById('maplibreGlobe');
+let mlMap = null;
+let selectedFlight = null;
+const globeInfo = document.getElementById('globeInfo');
 
-async function loadWorld() {
-  try {
-    const res = await fetch('assets/world.geojson');
-    WORLD_GEOJSON = await res.json();
-  } catch (e) {
-    console.warn('world geojson failed', e);
+function altColor(alt) {
+  if (alt < 35000) return '#ff3131';
+  if (alt < 40000) return '#ff8c1a';
+  return '#ffcc00';
+}
+
+function showFlightOnGlobe(fl) {
+  selectedFlight = fl;
+  activatePanel('globe');
+  updateGlobeInfo(fl);
+  if (mlMap && fl) {
+    mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: Math.max(mlMap.getZoom(), 3), duration: 1500 });
   }
 }
-loadWorld();
+window.showFlightOnGlobe = showFlightOnGlobe;
 
-if (globeCanvas) {
-  const g = globeCanvas.getContext('2d');
-  let GW, GH;
-  function resizeGlobe() {
-    GW = globeCanvas.width = globeCanvas.offsetWidth * devicePixelRatio;
-    GH = globeCanvas.height = globeCanvas.offsetHeight * devicePixelRatio;
+function updateGlobeInfo(fl) {
+  if (!globeInfo) return;
+  if (!fl) {
+    globeInfo.innerHTML = '<div class="gi-head">SELECT AN AIRCRAFT</div><div class="gi-empty">Click any red plane on the globe to view live flight data.</div>';
+    return;
   }
-  resizeGlobe();
-  window.addEventListener('resize', resizeGlobe);
+  const statusClass = fl.status === 'WATCH' ? 'warn' : 'ok';
+  globeInfo.innerHTML = `
+    <div class="gi-head">AIRCRAFT TELEMETRY</div>
+    <div class="gi-id">${fl.id}</div>
+    <div class="gi-row"><span class="label">Route</span><span class="val">${fl.from} → ${fl.to}</span></div>
+    <div class="gi-row"><span class="label">Type</span><span class="val">${fl.type}</span></div>
+    <div class="gi-row"><span class="label">Altitude</span><span class="val">${fl.alt.toLocaleString()} ft</span></div>
+    <div class="gi-row"><span class="label">Speed</span><span class="val">${fl.spd} kts</span></div>
+    <div class="gi-row"><span class="label">Heading</span><span class="val">${fl.heading}°</span></div>
+    <div class="gi-row"><span class="label">Position</span><span class="val">${fl.lat.toFixed(1)}, ${fl.lon.toFixed(1)}</span></div>
+    <div class="gi-row"><span class="label">QKD Link</span><span class="val ${fl.qkd ? 'ok' : 'warn'}">${fl.qkd ? 'ACTIVE' : 'DEGRADED'}</span></div>
+    <div class="gi-row"><span class="label">Agility Score</span><span class="val ok">${fl.score}/100</span></div>
+    <div class="gi-row"><span class="label">Status</span><span class="val ${statusClass}">${fl.status}</span></div>
+  `;
+}
 
-  let rotY = 0, rotX = -0.3;
-  let dragging = false, lastX = 0, lastY = 0;
-  let autoRotate = true;
-  let zoom = 1; // 1 = default, >1 = zoomed in
+// Initialize MapLibre globe
+function initMapLibre() {
+  if (!mapContainer || typeof maplibregl === 'undefined') return;
 
-  globeCanvas.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; autoRotate = false; });
-  window.addEventListener('mouseup', () => { dragging = false; });
-  window.addEventListener('mousemove', (e) => {
-    if (!dragging) return;
-    rotY += (e.clientX - lastX) * 0.005 / zoom;
-    rotX += (e.clientY - lastY) * 0.005 / zoom;
-    rotX = Math.max(-1.2, Math.min(1.2, rotX));
-    lastX = e.clientX; lastY = e.clientY;
+  mlMap = new maplibregl.Map({
+    container: mapContainer,
+    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    center: [0, 25],
+    zoom: 1.5,
+    maxZoom: 8,
+    minZoom: 1,
+    projection: { type: 'globe' },
+    attributionControl: false,
   });
-  globeCanvas.addEventListener('touchstart', (e) => { dragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; autoRotate = false; });
-  globeCanvas.addEventListener('touchend', () => { dragging = false; });
-  globeCanvas.addEventListener('touchmove', (e) => {
-    if (!dragging) return;
-    e.preventDefault();
-    rotY += (e.touches[0].clientX - lastX) * 0.005 / zoom;
-    rotX += (e.touches[0].clientY - lastY) * 0.005 / zoom;
-    rotX = Math.max(-1.2, Math.min(1.2, rotX));
-    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-  }, { passive: false });
 
-  // Zoom with mouse wheel
-  globeCanvas.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    zoom = Math.max(1, Math.min(6, zoom * delta));
-  }, { passive: false });
+  mlMap.on('load', () => {
+    // Create plane icon (red aircraft silhouette)
+    const planeCanvas = document.createElement('canvas');
+    planeCanvas.width = 32; planeCanvas.height = 32;
+    const pctx = planeCanvas.getContext('2d');
+    pctx.fillStyle = '#ff3131';
+    pctx.beginPath();
+    pctx.moveTo(16, 2);           // nose
+    pctx.lineTo(19, 14);
+    pctx.lineTo(30, 18);
+    pctx.lineTo(30, 21);
+    pctx.lineTo(19, 20);
+    pctx.lineTo(20, 26);
+    pctx.lineTo(25, 30);
+    pctx.lineTo(25, 31);
+    pctx.lineTo(16, 29);
+    pctx.lineTo(7, 31);
+    pctx.lineTo(7, 30);
+    pctx.lineTo(12, 26);
+    pctx.lineTo(13, 20);
+    pctx.lineTo(2, 21);
+    pctx.lineTo(2, 18);
+    pctx.lineTo(13, 14);
+    pctx.closePath();
+    pctx.fill();
+    mlMap.addImage('plane-red', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
 
-  // Pinch zoom for touch
-  let pinchDist = 0;
-  globeCanvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-      pinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    }
-  });
-  globeCanvas.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 2) {
-      e.preventDefault();
-      const newDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      if (pinchDist > 0) {
-        zoom = Math.max(1, Math.min(6, zoom * (newDist / pinchDist)));
-      }
-      pinchDist = newDist;
-    }
-  }, { passive: false });
+    // Threat icon (dark red)
+    pctx.clearRect(0, 0, 32, 32);
+    pctx.fillStyle = '#660018';
+    pctx.beginPath();
+    pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
+    pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
+    pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
+    pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
+    pctx.closePath(); pctx.fill();
+    mlMap.addImage('plane-threat', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
 
-  function project(lat, lon, r) {
-    const x = r * Math.cos(lat * Math.PI / 180) * Math.sin(lon * Math.PI / 180);
-    const y = r * Math.sin(lat * Math.PI / 180);
-    const z = r * Math.cos(lat * Math.PI / 180) * Math.cos(lon * Math.PI / 180);
-    const x2 = x * Math.cos(rotY) + z * Math.sin(rotY);
-    const z2 = -x * Math.sin(rotY) + z * Math.cos(rotY);
-    const y2 = y * Math.cos(rotX) - z2 * Math.sin(rotX);
-    const z3 = y * Math.sin(rotX) + z2 * Math.cos(rotX);
-    return { x: x2, y: y2, z: z3 };
-  }
+    // Search-highlight icon (gold)
+    pctx.clearRect(0, 0, 32, 32);
+    pctx.fillStyle = '#ffcc00';
+    pctx.beginPath();
+    pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
+    pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
+    pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
+    pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
+    pctx.closePath(); pctx.fill();
+    mlMap.addImage('plane-search', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
 
-  // Plane icon path (small airplane silhouette) — rotated to heading
-  function drawPlaneIcon(ctx, x, y, size, color, alpha, heading) {
-    ctx.save();
-    ctx.translate(x, y);
-    // rotate so plane points in its heading direction
-    // default plane icon points up (north = 0°), so rotate by heading
-    ctx.rotate((heading - 90) * Math.PI / 180);
-    ctx.scale(size, size);
-    ctx.globalAlpha = alpha;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    // plane silhouette pointing right (east = 90°), we rotate to match heading
-    // nose at right, tail at left
-    ctx.moveTo(8, 0);            // nose
-    ctx.lineTo(2, -1);           // top-right body
-    ctx.lineTo(0, -6);          // top wing tip
-    ctx.lineTo(-2, -6);
-    ctx.lineTo(-2, -1);
-    ctx.lineTo(-5, -1.5);       // top tail
-    ctx.lineTo(-7, -3);
-    ctx.lineTo(-8, -3);
-    ctx.lineTo(-7, 0);          // tail center
-    ctx.lineTo(-8, 3);
-    ctx.lineTo(-7, 3);
-    ctx.lineTo(-5, 1.5);        // bottom tail
-    ctx.lineTo(-2, 1);
-    ctx.lineTo(-2, 6);          // bottom wing
-    ctx.lineTo(0, 6);
-    ctx.lineTo(2, 1);           // bottom-right body
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
+    // Airport dot icon
+    const aptCanvas = document.createElement('canvas');
+    aptCanvas.width = 16; aptCanvas.height = 16;
+    const actx = aptCanvas.getContext('2d');
+    actx.fillStyle = '#78c8ff';
+    actx.beginPath(); actx.arc(8, 8, 5, 0, Math.PI * 2); actx.fill();
+    actx.strokeStyle = '#78c8ff'; actx.lineWidth = 1;
+    actx.beginPath(); actx.arc(8, 8, 7, 0, Math.PI * 2); actx.stroke();
+    mlMap.addImage('airport', { width: 16, height: 16, data: new Uint8Array(actx.getImageData(0, 0, 16, 16).data) });
 
-  let selectedFlight = null;
-  const globeInfo = document.getElementById('globeInfo');
-
-  function showFlightOnGlobe(fl) {
-    selectedFlight = fl;
-    activatePanel('globe');
-    updateGlobeInfo(fl);
-  }
-  window.showFlightOnGlobe = showFlightOnGlobe;
-
-  function updateGlobeInfo(fl) {
-    if (!globeInfo) return;
-    if (!fl) {
-      globeInfo.innerHTML = '<div class="gi-head">SELECT AN AIRCRAFT</div><div class="gi-empty">Click any red plane on the globe to view live flight data.</div>';
-      return;
-    }
-    const statusClass = fl.status === 'WATCH' ? 'warn' : 'ok';
-    globeInfo.innerHTML = `
-      <div class="gi-head">AIRCRAFT TELEMETRY</div>
-      <div class="gi-id">${fl.id}</div>
-      <div class="gi-row"><span class="label">Route</span><span class="val">${fl.from} → ${fl.to}</span></div>
-      <div class="gi-row"><span class="label">Type</span><span class="val">${fl.type}</span></div>
-      <div class="gi-row"><span class="label">Altitude</span><span class="val">${fl.alt.toLocaleString()} ft</span></div>
-      <div class="gi-row"><span class="label">Speed</span><span class="val">${fl.spd} kts</span></div>
-      <div class="gi-row"><span class="label">Heading</span><span class="val">${fl.heading}°</span></div>
-      <div class="gi-row"><span class="label">Position</span><span class="val">${fl.lat.toFixed(1)}, ${fl.lon.toFixed(1)}</span></div>
-      <div class="gi-row"><span class="label">QKD Link</span><span class="val ${fl.qkd ? 'ok' : 'warn'}">${fl.qkd ? 'ACTIVE' : 'DEGRADED'}</span></div>
-      <div class="gi-row"><span class="label">Agility Score</span><span class="val ok">${fl.score}/100</span></div>
-      <div class="gi-row"><span class="label">Status</span><span class="val ${statusClass}">${fl.status}</span></div>
-    `;
-  }
-
-  globeCanvas.addEventListener('click', (e) => {
-    const rect = globeCanvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * devicePixelRatio;
-    const my = (e.clientY - rect.top) * devicePixelRatio;
-    const cx = GW / 2, cy = GH / 2;
-    const r = Math.min(GW, GH) * 0.38;
-    let closest = null, closestDist = 24 * devicePixelRatio;
-    FLIGHTS.forEach((fl) => {
-      const p = project(fl.lat, fl.lon, r);
-      const sx = cx + p.x, sy = cy - p.y;
-      if (p.z > -r * 0.3) {
-        const d = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
-        if (d < closestDist) { closestDist = d; closest = fl; }
-      }
+    // Add flights source
+    mlMap.addSource('flights', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: FLIGHTS.map(fl => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [fl.lon, fl.lat] },
+        properties: {
+          id: fl.id, from: fl.from, to: fl.to, type: fl.type,
+          alt: fl.alt, spd: fl.spd, heading: fl.heading,
+          score: fl.score, status: fl.status, threat: fl.threat,
+          qkd: fl.qkd, lat: fl.lat, lon: fl.lon,
+        }
+      })) }
     });
-    if (closest) { selectedFlight = closest; updateGlobeInfo(closest); }
-  });
 
-  // Hover tooltip
-  let hoveredFlight = null;
-  const tooltip = document.createElement('div');
-  tooltip.style.cssText = 'position:absolute;background:rgba(10,14,30,0.95);border:1px solid #cc0001;border-radius:6px;padding:6px 10px;font:11px JetBrains Mono,monospace;color:#fff;pointer-events:none;z-index:50;display:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);';
-  if (globeCanvas.parentElement) globeCanvas.parentElement.appendChild(tooltip);
-
-  globeCanvas.addEventListener('mousemove', (e) => {
-    const rect = globeCanvas.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) * devicePixelRatio;
-    const my = (e.clientY - rect.top) * devicePixelRatio;
-    const cx = GW / 2, cy = GH / 2;
-    const r = Math.min(GW, GH) * 0.38;
-    let closest = null, closestDist = 20 * devicePixelRatio;
-    FLIGHTS.forEach((fl) => {
-      const p = project(fl.lat, fl.lon, r);
-      const sx = cx + p.x, sy = cy - p.y;
-      if (p.z > -r * 0.3) {
-        const d = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
-        if (d < closestDist) { closestDist = d; closest = fl; }
-      }
-    });
-    hoveredFlight = closest;
-    if (closest) {
-      tooltip.style.display = 'block';
-      tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
-      tooltip.style.top = (e.clientY - rect.top + 8) + 'px';
-      tooltip.innerHTML = `<span style="color:#ff3131;font-weight:bold">${closest.id}</span> · ${closest.from}→${closest.to} · ${closest.alt.toLocaleString()}ft`;
-      globeCanvas.style.cursor = 'pointer';
-    } else {
-      tooltip.style.display = 'none';
-      globeCanvas.style.cursor = dragging ? 'grabbing' : 'grab';
-    }
-  });
-  globeCanvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
-
-  function drawGlobe() {
-    g.clearRect(0, 0, GW, GH);
-    const cx = GW / 2, cy = GH / 2;
-    const baseR = Math.min(GW, GH) * 0.38;
-    const r = baseR * zoom;
-
-    // sphere background — FlightAware beta uses deep navy (#000E29)
-    const grad = g.createRadialGradient(cx - r * 0.3, cy - r * 0.3, 0, cx, cy, r);
-    grad.addColorStop(0, '#0a1530');
-    grad.addColorStop(0.7, '#000E29');
-    grad.addColorStop(1, '#000814');
-    g.fillStyle = grad;
-    g.beginPath();
-    g.arc(cx, cy, r, 0, Math.PI * 2);
-    g.fill();
-
-    // sphere outline
-    g.strokeStyle = 'rgba(255,49,49,0.15)';
-    g.lineWidth = 1 * devicePixelRatio;
-    g.beginPath();
-    g.arc(cx, cy, r, 0, Math.PI * 2);
-    g.stroke();
-
-    // Detail scales with zoom
-    const detailLevel = zoom; // 1 = normal, higher = more detail
-    const borderOpacity = Math.min(0.55 + (zoom - 1) * 0.15, 0.95);
-    const borderFillOpacity = Math.min(0.35 + (zoom - 1) * 0.1, 0.6);
-    const gridOpacity = zoom > 2 ? 0.08 : 0.04;
-    const labelOpacity = Math.min(0.5 + (zoom - 1) * 0.3, 1);
-    const labelSize = Math.min(9 + (zoom - 1) * 3, 16);
-    const airportDotSize = Math.min(3 + (zoom - 1) * 1.5, 7);
-    const planeScale = Math.min(1 + (zoom - 1) * 0.3, 2.5);
-
-    // grid lines
-    g.strokeStyle = `rgba(255,255,255,${gridOpacity})`;
-    g.lineWidth = 0.5 * devicePixelRatio;
-    for (let lat = -60; lat <= 60; lat += 30) {
-      g.beginPath();
-      for (let lon = -180; lon <= 180; lon += 5) {
-        const p = project(lat, lon, r);
-        const sx = cx + p.x, sy = cy - p.y;
-        if (p.z > 0) { g.moveTo(sx, sy); } else { g.lineTo(sx, sy); }
-      }
-      g.stroke();
-    }
-    for (let lon = -180; lon <= 180; lon += 30) {
-      g.beginPath();
-      for (let lat = -80; lat <= 80; lat += 5) {
-        const p = project(lat, lon, r);
-        const sx = cx + p.x, sy = cy - p.y;
-        if (p.z > 0) { g.moveTo(sx, sy); } else { g.lineTo(sx, sy); }
-      }
-      g.stroke();
-    }
-
-    // draw actual country borders from geojson
-    if (WORLD_GEOJSON && WORLD_GEOJSON.features) {
-      g.strokeStyle = `rgba(138,150,180,${borderOpacity})`;
-      g.fillStyle = `rgba(40,55,85,${borderFillOpacity})`;
-      g.lineWidth = Math.min(0.8 + (zoom - 1) * 0.4, 2) * devicePixelRatio;
-      WORLD_GEOJSON.features.forEach((feat) => {
-        const geom = feat.geometry;
-        if (!geom) return;
-        const coords = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
-        coords.forEach((poly) => {
-          poly.forEach((ring) => {
-            let first = true;
-            ring.forEach((pt) => {
-              const [lon, lat] = pt;
-              const p = project(lat, lon, r);
-              const sx = cx + p.x, sy = cy - p.y;
-              if (p.z > 0) {
-                if (first) { g.beginPath(); g.moveTo(sx, sy); first = false; }
-                else { g.lineTo(sx, sy); }
-              }
-            });
-            if (!first) { g.closePath(); g.fill(); g.stroke(); }
-          });
-        });
-      });
-    }
-
-    // Draw airport markers at origin/destination
-    g.fillStyle = 'rgba(120,200,255,0.7)';
-    g.strokeStyle = 'rgba(120,200,255,0.9)';
-    g.lineWidth = 1 * devicePixelRatio;
+    // Add airport markers source
+    const airportFeatures = [];
     const drawnAirports = new Set();
-    FLIGHTS.forEach((fl) => {
-      [fl.from, fl.to].forEach((code) => {
+    FLIGHTS.forEach(fl => {
+      [fl.from, fl.to].forEach(code => {
         if (drawnAirports.has(code)) return;
         drawnAirports.add(code);
         const coords = AIRPORTS[code];
-        if (!coords) return;
-        const p = project(coords[0], coords[1], r);
-        if (p.z > 0) {
-          const sx = cx + p.x, sy = cy - p.y;
-          g.beginPath();
-          g.arc(sx, sy, airportDotSize * devicePixelRatio, 0, Math.PI * 2);
-          g.fill();
-          // label (bigger and more visible when zoomed)
-          g.font = `${labelSize * devicePixelRatio}px JetBrains Mono`;
-          g.fillStyle = `rgba(150,180,220,${labelOpacity})`;
-          g.fillText(code, sx + 5 * devicePixelRatio, sy + 3 * devicePixelRatio);
-          g.fillStyle = 'rgba(120,200,255,0.7)';
-        }
+        if (coords) airportFeatures.push({
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [coords[1], coords[0]] },
+          properties: { code }
+        });
       });
     });
-
-    // Draw flight trails behind each plane
-    FLIGHTS.forEach((fl) => {
-      if (!fl.trail || fl.trail.length < 2) return;
-      g.strokeStyle = 'rgba(255,49,49,0.3)';
-      g.lineWidth = 1 * devicePixelRatio;
-      g.beginPath();
-      let started = false;
-      fl.trail.forEach((pt, i) => {
-        const p = project(pt[0], pt[1], r);
-        if (p.z > -r * 0.2) {
-          const sx = cx + p.x, sy = cy - p.y;
-          if (!started) { g.moveTo(sx, sy); started = true; }
-          else { g.lineTo(sx, sy); }
-        }
-      });
-      if (started) g.stroke();
+    mlMap.addSource('airports', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: airportFeatures }
     });
 
-    // Draw origin/destination lines for selected flight
-    if (selectedFlight) {
-      const fl = selectedFlight;
-      g.strokeStyle = 'rgba(255,204,0,0.4)';
-      g.lineWidth = 1.2 * devicePixelRatio;
-      g.setLineDash([4 * devicePixelRatio, 4 * devicePixelRatio]);
-      [[fl.fromCoords, [fl.lat, fl.lon]], [[fl.lat, fl.lon], fl.toCoords]].forEach(([a, b]) => {
-        if (!a || !b) return;
-        const pa = project(a[0], a[1], r), pb = project(b[0], b[1], r);
-        if (pa.z > -r * 0.2 && pb.z > -r * 0.2) {
-          g.beginPath();
-          g.moveTo(cx + pa.x, cy - pa.y);
-          g.lineTo(cx + pb.x, cy - pb.y);
-          g.stroke();
-        }
-      });
-      g.setLineDash([]);
-    }
-
-    // flight paths (QKD links) between pairs
-    g.strokeStyle = 'rgba(255,49,49,0.15)';
-    g.lineWidth = 1 * devicePixelRatio;
-    for (let i = 0; i < 8; i++) {
-      const a = FLIGHTS[i], b = FLIGHTS[i + 10];
-      const pa = project(a.lat, a.lon, r), pb = project(b.lat, b.lon, r);
-      if (pa.z > 0 && pb.z > 0) {
-        g.beginPath();
-        g.moveTo(cx + pa.x, cy - pa.y);
-        g.lineTo(cx + pb.x, cy - pb.y);
-        g.stroke();
-      }
-    }
-
-    // aircraft as plane icons (altitude color-coded)
-    FLIGHTS.forEach((fl) => {
-      const p = project(fl.lat, fl.lon, r);
-      if (p.z > -r * 0.2) {
-        const sx = cx + p.x, sy = cy - p.y;
-        const alpha = Math.max(0.35, p.z / r + 0.35);
-        let color = altColor(fl.alt);
-        if (fl.threat) color = '#660018';
-        let iconSize = (selectedFlight === fl ? 1.6 : 1) * planeScale * devicePixelRatio;
-        // search highlight
-        if (fl.searchMatch) {
-          color = '#ffcc00';
-          iconSize = 1.8 * devicePixelRatio;
-        }
-
-        // glow
-        g.shadowColor = color;
-        g.shadowBlur = 10 * devicePixelRatio;
-        drawPlaneIcon(g, sx, sy, iconSize, color, alpha, fl.heading);
-        g.shadowBlur = 0;
-
-        if (selectedFlight === fl) {
-          g.strokeStyle = '#ff3131';
-          g.lineWidth = 1.5 * devicePixelRatio;
-          g.beginPath();
-          g.arc(sx, sy, 12 * devicePixelRatio, 0, Math.PI * 2);
-          g.stroke();
-        }
+    // Airport labels
+    mlMap.addLayer({
+      id: 'airport-labels',
+      type: 'symbol',
+      source: 'airports',
+      layout: {
+        'icon-image': 'airport',
+        'icon-size': 0.8,
+        'text-field': ['get', 'code'],
+        'text-font': ['Open Sans Semibold'],
+        'text-size': 10,
+        'text-offset': [0, -1.5],
+        'text-anchor': 'bottom',
+      },
+      paint: {
+        'text-color': '#78c8ff',
+        'text-halo-color': '#000',
+        'text-halo-width': 1,
       }
     });
 
-    if (autoRotate) rotY += 0.002;
-    requestAnimationFrame(drawGlobe);
-  }
-
-  // Live movement — planes progress toward destination every 2s
-  setInterval(() => {
-    FLIGHTS.forEach((fl) => {
-      if (!fl.fromCoords || !fl.toCoords) return;
-      // advance progress
-      fl.progress += 0.008;
-      if (fl.progress >= 1) {
-        // Reset: new flight
-        fl.progress = 0;
-        const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
-        fl.from = route[0]; fl.to = route[1];
-        fl.fromCoords = AIRPORTS[route[0]] || [40, -74];
-        fl.toCoords = AIRPORTS[route[1]] || [51, 0];
-        fl.trail = [];
-      }
-      // Update position
-      fl.lat = fl.fromCoords[0] + (fl.toCoords[0] - fl.fromCoords[0]) * fl.progress + (Math.random() - 0.5) * 4;
-      fl.lon = fl.fromCoords[1] + (fl.toCoords[1] - fl.fromCoords[1]) * fl.progress + (Math.random() - 0.5) * 4;
-      fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
-      // Update trail
-      fl.trail.unshift([fl.lat, fl.lon]);
-      if (fl.trail.length > 8) fl.trail.pop();
-      // If selected flight, update info panel
-      if (selectedFlight === fl) updateGlobeInfo(fl);
+    // Flight trails (lines behind planes)
+    const trailFeatures = FLIGHTS.filter(fl => fl.trail && fl.trail.length > 1).map(fl => ({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: fl.trail.map(t => [t[1], t[0]]) },
+      properties: { id: fl.id }
+    }));
+    mlMap.addSource('trails', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: trailFeatures }
     });
-  }, 2000);
+    mlMap.addLayer({
+      id: 'trail-lines',
+      type: 'line',
+      source: 'trails',
+      paint: {
+        'line-color': '#ff3131',
+        'line-width': 1.5,
+        'line-opacity': 0.4,
+      }
+    });
 
-  drawGlobe();
+    // Route lines (origin → plane → destination) for selected flight
+    mlMap.addSource('route-lines', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    });
+    mlMap.addLayer({
+      id: 'route-line-layer',
+      type: 'line',
+      source: 'route-lines',
+      paint: {
+        'line-color': '#ffcc00',
+        'line-width': 1.5,
+        'line-opacity': 0.5,
+        'line-dasharray': [2, 2],
+      }
+    });
 
-  // Zoom buttons
-  const zoomInBtn = document.getElementById('zoomIn');
-  const zoomOutBtn = document.getElementById('zoomOut');
-  const zoomLevelEl = document.getElementById('zoomLevel');
-  function updateZoomDisplay() { if (zoomLevelEl) zoomLevelEl.textContent = zoom.toFixed(1) + 'x'; }
-  if (zoomInBtn) zoomInBtn.addEventListener('click', () => { zoom = Math.min(6, zoom * 1.3); updateZoomDisplay(); });
-  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => { zoom = Math.max(1, zoom / 1.3); updateZoomDisplay(); });
-  // update display when wheel zoom used
-  globeCanvas.addEventListener('wheel', () => setTimeout(updateZoomDisplay, 50));
+    // Aircraft symbol layer — rotated by heading
+    mlMap.addLayer({
+      id: 'aircraft',
+      type: 'symbol',
+      source: 'flights',
+      layout: {
+        'icon-image': [
+          'case',
+          ['get', 'threat'], 'plane-threat',
+          ['==', ['get', 'id'], selectedFlight ? selectedFlight.id : ''], 'plane-search',
+          'plane-red'
+        ],
+        'icon-size': 0.7,
+        'icon-rotate': ['get', 'heading'],
+        'icon-rotation-alignment': 'map',
+        'icon-allow-overlap': true,
+      },
+      paint: {
+        'icon-opacity': 0.9,
+      }
+    });
+
+    // Click handler
+    mlMap.on('click', 'aircraft', (e) => {
+      const f = e.features[0];
+      const fl = FLIGHTS.find(x => x.id === f.properties.id);
+      if (fl) {
+        selectedFlight = fl;
+        updateGlobeInfo(fl);
+        updateRouteLines();
+      }
+    });
+
+    // Hover cursor
+    mlMap.on('mouseenter', 'aircraft', () => { mlMap.getCanvas().style.cursor = 'pointer'; });
+    mlMap.on('mouseleave', 'aircraft', () => { mlMap.getCanvas().style.cursor = ''; });
+
+    // Popup on hover
+    const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 15 });
+    mlMap.on('mouseenter', 'aircraft', (e) => {
+      const f = e.features[0];
+      const coords = f.geometry.coordinates.slice();
+      const html = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;background:#0a0e1a;padding:6px 10px;border:1px solid #cc0001;border-radius:4px;">
+        <span style="color:#ff3131;font-weight:bold">${f.properties.id}</span> · ${f.properties.from}→${f.properties.to} · ${Math.round(f.properties.alt).toLocaleString()}ft
+      </div>`;
+      popup.setLngLat(coords).setHTML(html).addTo(mlMap);
+    });
+    mlMap.on('mouseleave', 'aircraft', () => popup.remove());
+
+    // Globe auto-rotate
+    let userInteracting = false;
+    mlMap.on('mousedown', () => { userInteracting = true; });
+    mlMap.on('touchstart', () => { userInteracting = true; });
+    const rotateInterval = setInterval(() => {
+      if (!userInteracting && mlMap) {
+        mlMap.rotateTo(mlMap.getBearing() + 0.3, { duration: 50 });
+      }
+    }, 100);
+    // Reset interaction flag after inactivity
+    let inactivityTimer;
+    mlMap.on('moveend', () => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => { userInteracting = false; }, 5000);
+    });
+
+    // Start live movement
+    setInterval(() => {
+      FLIGHTS.forEach((fl) => {
+        if (!fl.fromCoords || !fl.toCoords) return;
+        fl.progress += 0.008;
+        if (fl.progress >= 1) {
+          fl.progress = 0;
+          const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
+          fl.from = route[0]; fl.to = route[1];
+          fl.fromCoords = AIRPORTS[route[0]] || [40, -74];
+          fl.toCoords = AIRPORTS[route[1]] || [51, 0];
+          fl.trail = [];
+        }
+        fl.lat = fl.fromCoords[0] + (fl.toCoords[0] - fl.fromCoords[0]) * fl.progress + (Math.random() - 0.5) * 4;
+        fl.lon = fl.fromCoords[1] + (fl.toCoords[1] - fl.fromCoords[1]) * fl.progress + (Math.random() - 0.5) * 4;
+        fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
+        fl.trail.unshift([fl.lat, fl.lon]);
+        if (fl.trail.length > 8) fl.trail.pop();
+        if (selectedFlight === fl) updateGlobeInfo(fl);
+      });
+      // Update map sources
+      if (mlMap.getSource('flights')) {
+        mlMap.getSource('flights').setData({
+          type: 'FeatureCollection',
+          features: FLIGHTS.map(fl => ({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [fl.lon, fl.lat] },
+            properties: {
+              id: fl.id, from: fl.from, to: fl.to, type: fl.type,
+              alt: fl.alt, spd: fl.spd, heading: fl.heading,
+              score: fl.score, status: fl.status, threat: fl.threat,
+              qkd: fl.qkd, searchMatch: fl.searchMatch || false,
+            }
+          }))
+        });
+      }
+      if (mlMap.getSource('trails')) {
+        mlMap.getSource('trails').setData({
+          type: 'FeatureCollection',
+          features: FLIGHTS.filter(fl => fl.trail && fl.trail.length > 1).map(fl => ({
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: fl.trail.map(t => [t[1], t[0]]) },
+            properties: { id: fl.id }
+          }))
+        });
+      }
+      updateRouteLines();
+    }, 2000);
+  });
 }
+
+function updateRouteLines() {
+  if (!mlMap || !mlMap.getSource('route-lines') || !selectedFlight) return;
+  const fl = selectedFlight;
+  const features = [];
+  if (fl.fromCoords) features.push({
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[fl.fromCoords[1], fl.fromCoords[0]], [fl.lon, fl.lat]] },
+    properties: {}
+  });
+  if (fl.toCoords) features.push({
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[fl.lon, fl.lat], [fl.toCoords[1], fl.toCoords[0]]] },
+    properties: {}
+  });
+  mlMap.getSource('route-lines').setData({ type: 'FeatureCollection', features });
+}
+
+// Resize handler for when panel becomes visible
+window.addEventListener('resize', () => { if (mlMap) setTimeout(() => mlMap.resize(), 50); });
+
+// Initialize when globe panel is opened
+const globeBtn = document.querySelector('.sb-item[data-panel="globe"]');
+if (globeBtn) {
+  globeBtn.addEventListener('click', () => {
+    if (!mlMap) {
+      setTimeout(initMapLibre, 100);
+    } else {
+      setTimeout(() => mlMap.resize(), 100);
+    }
+  });
+}
+// Also init on dropdown click
+document.querySelectorAll('.sb-dd-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if (item.dataset.panel === 'globe' && !mlMap) {
+      setTimeout(initMapLibre, 100);
+    }
+  });
+});

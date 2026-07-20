@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/styles.css" />
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <style>
     body { margin: 0; overflow: hidden; }
     .console-page { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--bg); }
@@ -239,20 +241,15 @@
             <div class="panel-meta"><span class="pulse-dot ok"></span> TRACKING <span id="globeCount">247</span> AIRCRAFT</div>
           </div>
           <div class="globe-wrap">
-            <canvas id="globeCanvas"></canvas>
+            <div id="maplibreGlobe" style="width:100%;height:100%;"></div>
             <div class="globe-info" id="globeInfo">
               <div class="gi-head">SELECT AN AIRCRAFT</div>
-              <div class="gi-empty">Click any red dot on the globe to view live flight data.</div>
+              <div class="gi-empty">Click any red plane on the globe to view live flight data.</div>
             </div>
             <div class="globe-legend">
               <div><span class="legend-dot" style="background:#ff3131"></span> Protected Aircraft</div>
               <div><span class="legend-dot" style="background:#660018"></span> Threat Detected</div>
               <div><span class="legend-line"></span> Active QKD Link</div>
-            </div>
-            <div class="globe-zoom" id="globeZoom">
-              <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
-              <span class="zoom-level" id="zoomLevel">1.0x</span>
-              <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
             </div>
           </div>
         </div>
