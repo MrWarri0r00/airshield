@@ -258,6 +258,34 @@ function altColor(alt) {
 
 let FLIGHTS = [];
 
+// Generate fallback flights immediately so UI doesn't break
+function generateFallbackFlights() {
+  FLIGHTS = [];
+  for (let i = 0; i < 80; i++) {
+    const route = ROUTES[i % ROUTES.length];
+    const fromCoords = AIRPORTS[route[0]] || [40, -74];
+    const toCoords = AIRPORTS[route[1]] || [51, 0];
+    const progress = 0.15 + Math.random() * 0.7;
+    const lat = fromCoords[0] + (toCoords[0] - fromCoords[0]) * progress + (Math.random() - 0.5) * 8;
+    const lon = fromCoords[1] + (toCoords[1] - fromCoords[1]) * progress + (Math.random() - 0.5) * 8;
+    const score = Math.floor(Math.random() * 18) + 82;
+    const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
+    FLIGHTS.push({
+      id: 'RTX-' + (1000 + i), from: route[0], to: route[1],
+      fromCoords, toCoords,
+      type: TYPES[Math.floor(Math.random() * TYPES.length)],
+      lat, lon, score, status, threat: Math.random() < 0.08,
+      heading: Math.floor(Math.random() * 360),
+      alt: Math.floor(Math.random() * 30000) + 30000,
+      spd: Math.floor(Math.random() * 200) + 480,
+      qkd: Math.random() > 0.15, progress, trail: [],
+    });
+  }
+}
+
+// Generate immediately
+generateFallbackFlights();
+
 // Fetch real aircraft from OpenSky API, rename to RTX-####, keep real positions
 async function fetchRealFlights() {
   try {
@@ -297,28 +325,7 @@ async function fetchRealFlights() {
     console.log(`Loaded ${FLIGHTS.length} real aircraft from OpenSky`);
   } catch (e) {
     console.warn('OpenSky fetch failed, using fallback flights:', e.message);
-    // Fallback: generate flights if API fails
-    FLIGHTS = [];
-    for (let i = 0; i < 80; i++) {
-      const route = ROUTES[i % ROUTES.length];
-      const fromCoords = AIRPORTS[route[0]] || [40, -74];
-      const toCoords = AIRPORTS[route[1]] || [51, 0];
-      const progress = 0.15 + Math.random() * 0.7;
-      const lat = fromCoords[0] + (toCoords[0] - fromCoords[0]) * progress + (Math.random() - 0.5) * 8;
-      const lon = fromCoords[1] + (toCoords[1] - fromCoords[1]) * progress + (Math.random() - 0.5) * 8;
-      const score = Math.floor(Math.random() * 18) + 82;
-      const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
-      FLIGHTS.push({
-        id: 'RTX-' + (1000 + i), from: route[0], to: route[1],
-        fromCoords, toCoords,
-        type: TYPES[Math.floor(Math.random() * TYPES.length)],
-        lat, lon, score, status, threat: Math.random() < 0.08,
-        heading: Math.floor(Math.random() * 360),
-        alt: Math.floor(Math.random() * 30000) + 30000,
-        spd: Math.floor(Math.random() * 200) + 480,
-        qkd: Math.random() > 0.15, progress, trail: [],
-      });
-    }
+    generateFallbackFlights();
   }
 }
 
