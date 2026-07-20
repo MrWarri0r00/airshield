@@ -211,9 +211,7 @@ function addFeedItem(initial = false) {
   if (feedEl) { feedEl.prepend(row); while (feedEl.children.length > 24) feedEl.removeChild(feedEl.lastChild); }
   if (t.sev !== 'info') { threatCount++; if (threatCountEl) threatCountEl.textContent = threatCount; }
 }
-if (feedEl) { for (let i = 0; i < 12; i++) addFeedItem(true); setInterval(addFeedItem, 3200); }
-
-// Feed filter
+// Feed filter — must be declared before addFeedItem uses it
 let feedFilter = 'all';
 document.querySelectorAll('.feed-filter').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -230,6 +228,8 @@ document.querySelectorAll('.feed-filter').forEach(btn => {
     });
   });
 });
+
+if (feedEl) { for (let i = 0; i < 12; i++) addFeedItem(true); setInterval(addFeedItem, 3200); }
 
 /* ---------- FLIGHT DATA (shared) — pulled from OpenSky real-time API ---------- */
 const ROUTES = [
