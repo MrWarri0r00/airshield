@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Shield — Definitions & Glossary</title>
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { overflow-y: auto; }
+    .defs-page { max-width: 900px; margin: 0 auto; padding: 100px 28px 60px; }
+    .defs-head { margin-bottom: 48px; }
+    .defs-head h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .defs-head p { color: var(--text-dim); font-size: 16px; }
+    .defs-search { margin-bottom: 32px; }
+    .defs-search input { width: 100%; padding: 14px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; }
+    .defs-search input:focus { outline: none; border-color: var(--accent); }
+    .def-item { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; transition: all 0.2s; }
+    .def-item:hover { border-color: var(--accent); }
+    .def-term { font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+    .def-def { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 12px; }
+    .def-source { font-size: 12px; color: var(--text-faint); font-style: italic; padding-top: 10px; border-top: 1px solid var(--border); }
+    .def-cat { display: inline-block; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; margin-left: 10px; font-family: 'JetBrains Mono', monospace; vertical-align: middle; }
+    .def-cat.threat { background: rgba(255,49,49,0.15); color: var(--red-bright); }
+    .def-cat.quantum { background: rgba(0,229,255,0.15); color: #00E5FF; }
+    .def-cat.crypto { background: rgba(46,204,113,0.15); color: var(--ok); }
+    .def-cat.defense { background: rgba(241,196,15,0.15); color: var(--warn); }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; color: var(--text-dim); font-size: 13px; font-weight: 600; margin-bottom: 24px; transition: all 0.2s; text-decoration: none; }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+    .defs-empty { text-align: center; color: var(--text-faint); padding: 40px; }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <img src="assets/logo.svg" alt="Air Shield" class="nav-logo" />
+        <span class="nav-name">AIR<span class="accent">SHIELD</span></span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html#threat">The Threat</a>
+        <a href="index.html#solution">The Solution</a>
+        <a href="index.html#architecture">Architecture</a>
+        <a href="console.html" class="cta-link">Live Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="defs-page">
+    <a href="index.html" class="back-link">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Air Shield
+    </a>
+    <div class="defs-head">
+      <h1>Glossary & <span class="accent">Definitions</span></h1>
+      <p>Every technical term used in the Air Shield platform, defined with sources. Search or scroll to find any term.</p>
+    </div>
+    <div class="defs-search">
+      <input type="text" id="defsSearch" placeholder="Search terms…" />
+    </div>
+    <div id="defsList"></div>
+  </div>
+
+  <script>
+    const DEFINITIONS = [
+      { term: 'SNDL (Store Now, Decrypt Later)', cat: 'threat', def: 'A threat model where adversaries intercept and archive encrypted sensitive data today, waiting for a future cryptographically-relevant quantum computer to decrypt it. Also called HNDL (Harvest Now, Decrypt Later). This is happening right now — encrypted military communications are being stored by adversaries who cannot decrypt them yet but will be able to once quantum computers arrive.', source: 'Keyfactor. (2024). What is harvest now, decrypt later (HNDL)? https://www.keyfactor.com/education-center/what-is-harvest-now-decrypt-later-hndl/' },
+      { term: 'Shor\'s Algorithm', cat: 'threat', def: 'A quantum algorithm (published 1994) that can factor large integers and solve discrete logarithms in polynomial time. This breaks RSA and ECC encryption — the public-key cryptography that protects virtually every secure channel today — once a sufficiently large quantum computer exists.', source: 'Shor, P. W. (1994). Algorithms for quantum computation: Discrete logarithms and factoring. Proceedings of the 35th Annual Symposium on Foundations of Computer Science, 124–134.' },
+      { term: 'Grover\'s Algorithm', cat: 'threat', def: 'A quantum algorithm (1996) that searches unsorted databases in √N time, effectively halving the strength of symmetric encryption. AES-256 becomes AES-128 — still hard, but no longer mathematically impossible to break.', source: 'Grover, L. K. (1996). A fast quantum mechanical algorithm for database search. Proceedings of the 28th Annual ACM Symposium on Theory of Computing, 212–219.' },
+      { term: 'Q-Day', cat: 'threat', def: 'The anticipated moment when a cryptographically-relevant quantum computer (CRQC) becomes operational — capable of breaking RSA-2048 and ECC in practical time. Estimated to arrive between 2030–2035 based on current hardware trajectories.', source: 'Microsoft. (2026). Majorana 2: Microsoft\'s discovery for agentic AI and quantum computing.' },
+      { term: 'QRNG (Quantum Random Number Generator)', cat: 'quantum', def: 'A hardware device that harvests true, unpredictable randomness from quantum physical processes (e.g., vacuum fluctuations, photon paths). Unlike classical pseudo-random number generators, QRNG output has no underlying pattern — even an adversary with infinite computing power cannot predict a quantum-generated key.', source: 'Bennett, C. H., & Brassard, G. (2014). Quantum cryptography: Public key distribution and coin tossing. Theoretical Computer Science, 560, 7–11.' },
+      { term: 'QKD (Quantum Key Distribution)', cat: 'quantum', def: 'A secure communication method that encodes cryptographic keys onto single photons. Any eavesdropping physically collapses the photon state (No-Cloning Theorem), immediately alerting both sender and receiver. The compromised key is discarded before any data is sent.', source: 'Bennett, C. H., & Brassard, G. (2014). Quantum cryptography: Public key distribution and coin tossing. Theoretical Computer Science, 560, 7–11.' },
+      { term: 'No-Cloning Theorem', cat: 'quantum', def: 'A fundamental law of quantum mechanics (proven 1982) stating it is physically impossible to make an exact copy of an unknown quantum state. This is why QKD is information-theoretically secure — an eavesdropper cannot copy the key without destroying it.', source: 'Wootters, W. K., & Zurek, W. H. (1982). A single quantum cannot be cloned. Nature, 299(5886), 802–803.' },
+      { term: 'QSVM (Quantum Support Vector Machine)', cat: 'quantum', def: 'A quantum version of the classical Support Vector Machine classifier that uses quantum states for high-dimensional classification. QSVMs map data into Hilbert spaces where classical computers cannot compute, enabling detection of complex attack patterns that classical IDS cannot identify.', source: 'Lloyd, S., Mohseni, M., & Rebentrost, P. (2014). Quantum algorithms for supervised and unsupervised machine learning. Physical Review Letters, 112(13), 130502.' },
+      { term: 'QGAN (Quantum Generative Adversarial Network)', cat: 'quantum', def: 'A quantum-enhanced generative adversarial network that uses quantum circuits to accelerate or improve the synthesis of complex data. Adversaries could use QGANs to mutate malware faster than classical IDS can signature it — Air Shield uses QSVMs as the defense.', source: 'Hu, L., et al. (2018). Quantum generative adversarial learning in a superconducting quantum circuit. Physical Review Letters, 121(12), 120502.' },
+      { term: 'PQC (Post-Quantum Cryptography)', cat: 'crypto', def: 'Cryptographic algorithms designed to resist quantum attacks, running on classical computers. NIST standardized ML-KEM (FIPS 203) and ML-DSA (FIPS 204) in 2024. PQC is software-based — no quantum hardware required — but keys are larger (up to 7x) than classical crypto.', source: 'National Institute of Standards and Technology. (2024). FIPS 203: Module-lattice-based key-encapsulation mechanism standard.' },
+      { term: 'ML-KEM (FIPS 203)', cat: 'crypto', def: 'Module-Lattice-Based Key-Encapsulation Mechanism — the NIST-standardized post-quantum key exchange algorithm (derived from CRYSTALS-Kyber). Replaces RSA and Diffie-Hellman for secure key distribution. Active across the Air Shield fleet.', source: 'National Institute of Standards and Technology. (2024). FIPS 203: Module-lattice-based key-encapsulation mechanism standard.' },
+      { term: 'ML-DSA (FIPS 204)', cat: 'crypto', def: 'Module-Lattice-Based Digital Signature Algorithm — the NIST-standardized post-quantum signature algorithm (derived from CRYSTALS-Dilithium). Replaces RSA-PSS and ECDSA for digital signatures.', source: 'National Institute of Standards and Technology. (2024). FIPS 204: Module-lattice-based digital signature standard.' },
+      { term: 'RSA', cat: 'crypto', def: 'Rivest-Shamir-Adleman — one of the oldest and most widely used classical public-key cryptosystems. Based on the difficulty of factoring large primes. Breakable by Shor\'s algorithm on a quantum computer. Disabled in Air Shield.', source: 'Moriarty, K., et al. (2016). RFC 8017: PKCS #1: RSA cryptography specifications version 2.2. IETF.' },
+      { term: 'ECC (Elliptic Curve Cryptography)', cat: 'crypto', def: 'An approach to public-key cryptography based on the algebraic structure of elliptic curves. Provides smaller keys than RSA for equivalent security. Breakable by quantum Shor\'s variant. Disabled in Air Shield.', source: 'Moriarty, K., et al. (2016). RFC 8017: PKCS #1: RSA cryptography specifications version 2.2. IETF.' },
+      { term: 'AES (Advanced Encryption Standard)', cat: 'crypto', def: 'The industry-standard symmetric-key encryption algorithm (AES-256). Grover\'s algorithm reduces its effective strength to AES-128 — still secure, but Air Shield enforces AES-256 minimum.', source: 'National Institute of Standards and Technology. (2023). SP 800-82: Guide to operational technology (OT) security (Rev. 3).' },
+      { term: 'TLS 1.3', cat: 'crypto', def: 'Transport Layer Security version 1.3 — the fundamental cryptographic protocol for secure communications over computer networks. Air Shield uses a hybrid PQC-TLS implementation combining classical and post-quantum algorithms.', source: 'Rescorla, E. (2018). RFC 8446: The Transport Layer Security (TLS) protocol version 1.3. IETF.' },
+      { term: 'Crypto Agility', cat: 'crypto', def: 'The ability of a security system to quickly swap cryptographic algorithms without major redesign. Air Shield\'s architecture is crypto-agile — allowing seamless migration from classical to post-quantum algorithms across the fleet. Measured as a 0–100 score.', source: 'National Security Memorandum 28 (NSM-28). (2022). Promoting United States leadership in quantum computing.' },
+      { term: 'GPS Spoofing', cat: 'threat', def: 'An attack where false GPS signals are broadcast to trick aircraft navigation systems into drifting off course. GPS protocols are unauthenticated — they were never designed with signal authentication. Happening daily over conflict zones.', source: 'Federal Aviation Administration. (n.d.). NextGen: L-band digital aeronautical communications system (LDACS).' },
+      { term: 'Q-INS (Quantum Inertial Navigation System)', cat: 'defense', def: 'Cold-atom quantum sensors that measure acceleration with 10⁻⁹ g precision, allowing aircraft to navigate globally for months without GPS. Neutralizes GPS spoofing and jamming attacks permanently.', source: 'Defense Advanced Research Projects Agency. (n.d.). Quantum-Assisted Sensing and Readout (QuASAR).' },
+      { term: 'Tamper-Evident Log Chain', cat: 'defense', def: 'A blockchain-like hash chain where each flight data record is committed to ground via QKD in real-time. Any post-hoc tampering with the black box physically breaks the quantum hash chain — you cannot fake the flight log.', source: 'Bennett, C. H., & Brassard, G. (2014). Quantum cryptography: Public key distribution and coin tossing. Theoretical Computer Science, 560, 7–11.' },
+      { term: 'Zero Trust Architecture', cat: 'defense', def: 'A security framework built on the principle "never trust, always verify." Every data packet is authenticated and authorized — not just at the perimeter, but between every subsystem. NIST SP 800-207 standard, applied to avionics bus by Air Shield.', source: 'National Institute of Standards and Technology. (2020). SP 800-207: Zero Trust Architecture.' },
+      { term: 'CyberDAMS', cat: 'defense', def: 'Cyber Device Assessment and Mitigation System — an aircraft cybersecurity software used in current aviation to detect and mitigate cyber intrusions. Identifies vulnerabilities of avionics subsystems in minutes. Air Shield is the quantum-native successor.', source: 'RTX. (n.d.). BBN Technologies: Cybersecurity. https://www.rtx.com/who-we-are/we-are-rtx/transformative-technologies/bbn/cyber' },
+      { term: 'Quantum Supremacy', cat: 'quantum', def: 'The point at which a quantum computer can solve a problem that no classical computer could solve in any feasible time. Not yet achieved for cryptographically relevant problems, but approaching.', source: 'Microsoft. (2026). Majorana 2: Microsoft\'s discovery for agentic AI and quantum computing.' },
+      { term: 'Cryptographically Relevant Quantum Computer (CRQC)', cat: 'threat', def: 'A quantum computer powerful enough to break real-world cryptographic algorithms (RSA-2048, ECC). Does not exist yet. Estimated arrival: 2030–2035. This is what makes SNDL a real threat today.', source: 'Cybersecurity & Infrastructure Security Agency, NSA, & NIST. (2023). Quantum-readiness: Migration to post-quantum cryptography.' },
+    ];
+
+    const defsList = document.getElementById('defsList');
+    function renderDefs(filter = '') {
+      defsList.innerHTML = '';
+      const f = filter.toLowerCase();
+      const filtered = DEFINITIONS.filter(d => 
+        !f || d.term.toLowerCase().includes(f) || d.def.toLowerCase().includes(f)
+      );
+      if (filtered.length === 0) {
+        defsList.innerHTML = '<div class="defs-empty">No terms match "' + filter + '"</div>';
+        return;
+      }
+      filtered.forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'def-item';
+        div.innerHTML = `
+          <div class="def-term">${d.term}<span class="def-cat ${d.cat}">${d.cat}</span></div>
+          <div class="def-def">${d.def}</div>
+          <div class="def-source">Source: ${d.source}</div>
+        `;
+        defsList.appendChild(div);
+      });
+    }
+    renderDefs();
+
+    document.getElementById('defsSearch').addEventListener('input', (e) => renderDefs(e.target.value));
+  </script>
+</body>
+</html>

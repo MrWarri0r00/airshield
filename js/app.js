@@ -231,13 +231,12 @@ document.querySelectorAll('.feed-filter').forEach(btn => {
   });
 });
 
-/* ---------- FLIGHT DATA (shared) ---------- */
+/* ---------- FLIGHT DATA (shared) — pulled from OpenSky real-time API ---------- */
 const ROUTES = [
   ['JFK','LHR'],['LAX','NRT'],['ATL','FRA'],['DFW','GRU'],['ORD','DXB'],['MIA','CDG'],
   ['SFO','ICN'],['SEA','AMS'],['IAD','HND'],['BOS','MAD'],['PHX','ZRH'],['DEN','VIE'],
   ['HKG','SFO'],['SIN','LHR'],['SYD','LAX'],['DXB','JFK'],['ICN','ATL'],['AMS','JFK'],
 ];
-// Airport coordinates (lat, lon)
 const AIRPORTS = {
   JFK: [40.6413, -73.7781], LHR: [51.4700, -0.4543], LAX: [33.9416, -118.4085],
   NRT: [35.7720, 140.3929], ATL: [33.6407, -84.4277], FRA: [50.0379, 8.5622],
@@ -252,48 +251,84 @@ const AIRPORTS = {
 const TYPES = ['B777-300ER','B787-9','A350-1000','A380-800','B747-8I','A330-300','B767-300ER','A220-300'];
 
 function altColor(alt) {
-  // Low = red, mid = orange, high = yellow
-  if (alt < 35000) return '#ff3131';
+  if (!alt || alt < 35000) return '#ff3131';
   if (alt < 40000) return '#ff8c1a';
   return '#ffcc00';
 }
 
-const FLIGHTS = [];
-for (let i = 0; i < 80; i++) {
-  const route = ROUTES[i % ROUTES.length];
-  const fromCoords = AIRPORTS[route[0]] || [40, -74];
-  const toCoords = AIRPORTS[route[1]] || [51, 0];
-  // Start somewhere along the great circle between origin and destination
-  const progress = 0.15 + Math.random() * 0.7;
-  const lat = fromCoords[0] + (toCoords[0] - fromCoords[0]) * progress + (Math.random() - 0.5) * 8;
-  const lon = fromCoords[1] + (toCoords[1] - fromCoords[1]) * progress + (Math.random() - 0.5) * 8;
-  const score = Math.floor(Math.random() * 18) + 82;
-  const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
-  const threat = Math.random() < 0.08;
-  const heading = Math.floor(Math.atan2(toCoords[1] - lon, toCoords[0] - lat) * 180 / Math.PI + 360) % 360;
-  // Generate a trail behind the plane
-  const trail = [];
-  for (let t = 1; t <= 8; t++) {
-    const tp = Math.max(0, progress - t * 0.04);
-    trail.push([
-      fromCoords[0] + (toCoords[0] - fromCoords[0]) * tp,
-      fromCoords[1] + (toCoords[1] - fromCoords[1]) * tp,
-    ]);
+let FLIGHTS = [];
+
+// Fetch real aircraft from OpenSky API, rename to RTX-####, keep real positions
+async function fetchRealFlights() {
+  try {
+    const res = await fetch('https://opensky-network.org/api/states/all');
+    const data = await res.json();
+    const states = (data.states || []).filter(s => s[5] && s[6] && !s[8]); // has position, not on ground
+    // Take up to 80 random aircraft, spread across globe
+    const shuffled = states.sort(() => Math.random() - 0.5).slice(0, 80);
+    FLIGHTS = shuffled.map((s, i) => {
+      const route = ROUTES[i % ROUTES.length];
+      const fromCoords = AIRPORTS[route[0]] || [40, -74];
+      const toCoords = AIRPORTS[route[1]] || [51, 0];
+      const lat = s[6]; // real latitude
+      const lon = s[5]; // real longitude
+      const realAlt = s[7] ? Math.round(s[7] * 3.28084) : Math.floor(Math.random() * 30000) + 30000; // meters→feet
+      const realSpd = s[9] ? Math.round(s[9] * 1.94384) : Math.floor(Math.random() * 200) + 480; // m/s→knots
+      const realHeading = s[10] ? Math.round(s[10]) : Math.floor(Math.random() * 360);
+      const score = Math.floor(Math.random() * 18) + 82;
+      const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
+      const threat = Math.random() < 0.08;
+      return {
+        id: 'RTX-' + (1000 + i),
+        from: route[0], to: route[1],
+        fromCoords, toCoords,
+        type: TYPES[Math.floor(Math.random() * TYPES.length)],
+        lat, lon, score, status, threat,
+        heading: realHeading,
+        alt: realAlt,
+        spd: realSpd,
+        qkd: Math.random() > 0.15,
+        progress: 0.15 + Math.random() * 0.7,
+        trail: [],
+        realCallsign: (s[1] || '').trim(),
+        realCountry: s[2] || 'Unknown',
+      };
+    });
+    console.log(`Loaded ${FLIGHTS.length} real aircraft from OpenSky`);
+  } catch (e) {
+    console.warn('OpenSky fetch failed, using fallback flights:', e.message);
+    // Fallback: generate flights if API fails
+    FLIGHTS = [];
+    for (let i = 0; i < 80; i++) {
+      const route = ROUTES[i % ROUTES.length];
+      const fromCoords = AIRPORTS[route[0]] || [40, -74];
+      const toCoords = AIRPORTS[route[1]] || [51, 0];
+      const progress = 0.15 + Math.random() * 0.7;
+      const lat = fromCoords[0] + (toCoords[0] - fromCoords[0]) * progress + (Math.random() - 0.5) * 8;
+      const lon = fromCoords[1] + (toCoords[1] - fromCoords[1]) * progress + (Math.random() - 0.5) * 8;
+      const score = Math.floor(Math.random() * 18) + 82;
+      const status = score > 92 ? 'SECURE' : score > 86 ? 'ACTIVE' : 'WATCH';
+      FLIGHTS.push({
+        id: 'RTX-' + (1000 + i), from: route[0], to: route[1],
+        fromCoords, toCoords,
+        type: TYPES[Math.floor(Math.random() * TYPES.length)],
+        lat, lon, score, status, threat: Math.random() < 0.08,
+        heading: Math.floor(Math.random() * 360),
+        alt: Math.floor(Math.random() * 30000) + 30000,
+        spd: Math.floor(Math.random() * 200) + 480,
+        qkd: Math.random() > 0.15, progress, trail: [],
+      });
+    }
   }
-  FLIGHTS.push({
-    id: 'RTX-' + (1000 + Math.floor(Math.random() * 8999)),
-    from: route[0], to: route[1],
-    fromCoords, toCoords,
-    type: TYPES[Math.floor(Math.random() * TYPES.length)],
-    lat, lon, score, status, threat, heading, trail,
-    alt: Math.floor(Math.random() * 30000) + 30000,
-    spd: Math.floor(Math.random() * 200) + 480,
-    qkd: Math.random() > 0.15,
-    progress, // 0..1 along route
-  });
 }
 
 /* ---------- FLEET GRID ---------- */
+// Wait for real flight data to load before rendering
+fetchRealFlights().then(() => {
+  // Refresh from OpenSky every 60 seconds
+  setInterval(fetchRealFlights, 60000);
+});
+
 const fleetEl = document.getElementById('fleetGrid');
 if (fleetEl) {
   for (let i = 0; i < 24; i++) {
