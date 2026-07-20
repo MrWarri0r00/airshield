@@ -213,6 +213,8 @@ button { font-family: inherit; cursor: pointer; }
 .sb-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .sb-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px; background: none; border: none; color: var(--text-dim); font-size: 13px; font-weight: 500; text-align: left; transition: all 0.2s; position: relative; width: 100%; }
 .sb-item:hover { background: var(--panel-2); color: var(--text); transform: translateX(2px); }
+.sb-item:hover .sb-ico { animation: iconPulse 0.6s ease; }
+@keyframes iconPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 .sb-item.active { background: var(--accent-soft); color: var(--accent); }
 .sb-item.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--accent); border-radius: 2px; }
 .sb-ico { font-family: 'JetBrains Mono', monospace; font-size: 15px; min-width: 18px; text-align: center; }
@@ -279,7 +281,7 @@ button { font-family: inherit; cursor: pointer; }
 .bar-row span:last-child { color: var(--text-faint); font-family: 'JetBrains Mono', monospace; text-align: right; }
 
 /* ============================================================ GLOBE */
-.globe-wrap { position: relative; height: 520px; background: #04040A; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.globe-wrap { position: relative; flex: 1; background: #04040A; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; min-height: 400px; }
 #globeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
 #maplibreGlobe { width: 100%; height: 100%; }
 #maplibreGlobe canvas { display: block; }
@@ -343,6 +345,13 @@ button { font-family: inherit; cursor: pointer; }
 .fleet-stat .ok { color: var(--ok); }
 
 /* ============================================================ THREAT FEED */
+.feed-filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.feed-filter { padding: 5px 14px; border-radius: 100px; background: var(--panel-2); border: 1px solid var(--border); color: var(--text-dim); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'JetBrains Mono', monospace; }
+.feed-filter:hover { border-color: var(--accent); color: var(--text); }
+.feed-filter.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.feed-filter.critical.active { background: rgba(255,49,49,0.15); border-color: var(--red-bright); color: var(--red-bright); }
+.feed-filter.high.active { background: rgba(241,196,15,0.15); border-color: var(--warn); color: var(--warn); }
+.feed-filter.info.active { background: rgba(46,204,113,0.15); border-color: var(--ok); color: var(--ok); }
 .feed { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 6px; }
 .feed::-webkit-scrollbar { width: 6px; }
 .feed::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }

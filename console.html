@@ -171,7 +171,6 @@
           <div class="search-box">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input type="text" id="flightSearch" placeholder="Search flights by ID, route, or aircraft type…" />
-            <kbd>⌘K</kbd>
           </div>
         </div>
 
@@ -228,7 +227,6 @@
                 <div class="em-desc">Estimated fleet traffic being archived by adversaries right now for future quantum decryption.</div>
                 <div class="em-stat"><span class="em-label">Intercepted channels:</span> <span class="em-val" id="emChannels">118 / 247</span></div>
                 <div class="em-stat"><span class="em-label">Readability:</span> <span class="em-val warn">Failing today · readable by 2035</span></div>
-                <div class="em-note">This number never reaches zero. SNDL is an ongoing, active threat — not a future hypothetical.</div>
               </div>
             </div>
           </div>
@@ -238,7 +236,7 @@
         <div class="panel" id="panel-globe">
           <div class="panel-head">
             <h3>Live Globe — Protected Aircraft Worldwide</h3>
-            <div class="panel-meta"><span class="pulse-dot ok"></span> TRACKING <span id="globeCount">247</span> AIRCRAFT</div>
+            <div class="panel-meta"><span class="pulse-dot ok"></span> TRACKING <span id="globeCount">0</span> AIRCRAFT</div>
           </div>
           <div class="globe-wrap">
             <div id="maplibreGlobe" style="width:100%;height:100%;"></div>
@@ -269,6 +267,12 @@
         <!-- THREATS -->
         <div class="panel" id="panel-threats">
           <div class="panel-head"><h3>Live Threat Feed</h3><div class="panel-meta"><span class="pulse-dot warn"></span> STREAMING</div></div>
+          <div class="feed-filters" id="feedFilters">
+            <button class="feed-filter active" data-filter="all">All</button>
+            <button class="feed-filter critical" data-filter="critical">Critical</button>
+            <button class="feed-filter high" data-filter="high">High</button>
+            <button class="feed-filter info" data-filter="info">Info</button>
+          </div>
           <div class="feed" id="threatFeed"></div>
         </div>
 

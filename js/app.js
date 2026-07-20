@@ -206,10 +206,30 @@ function addFeedItem(initial = false) {
   const row = document.createElement('div');
   row.className = 'feed-item ' + t.sev;
   row.innerHTML = `<span class="feed-time">${time}</span><span class="feed-sev ${t.sev}">${sevLabel}</span><span class="feed-msg">${t.msg}</span><span class="feed-src">${t.src}</span>`;
+  // Apply current filter
+  if (feedFilter !== 'all' && t.sev !== feedFilter) row.style.display = 'none';
   if (feedEl) { feedEl.prepend(row); while (feedEl.children.length > 24) feedEl.removeChild(feedEl.lastChild); }
   if (t.sev !== 'info') { threatCount++; if (threatCountEl) threatCountEl.textContent = threatCount; }
 }
 if (feedEl) { for (let i = 0; i < 12; i++) addFeedItem(true); setInterval(addFeedItem, 3200); }
+
+// Feed filter
+let feedFilter = 'all';
+document.querySelectorAll('.feed-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.feed-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    feedFilter = btn.dataset.filter;
+    // Apply filter to existing items
+    document.querySelectorAll('.feed-item').forEach(item => {
+      if (feedFilter === 'all' || item.classList.contains(feedFilter)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+});
 
 /* ---------- FLIGHT DATA (shared) ---------- */
 const ROUTES = [
@@ -444,22 +464,27 @@ function updateGlobeInfo(fl) {
 function initMapLibre() {
   if (!mapContainer || typeof maplibregl === 'undefined') return;
 
+  // Animate the aircraft count from 0 to 247
+  const globeCountEl = document.getElementById('globeCount');
+  if (globeCountEl) {
+    countUp(globeCountEl, 247, 2000);
+  }
+
   mlMap = new maplibregl.Map({
     container: mapContainer,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    center: [0, 35],
-    zoom: 1.0,
+    center: [0, 25],
+    zoom: 1.5,
     maxZoom: 8,
-    minZoom: 0.8,
+    minZoom: 0.5,
     maxPitch: 85,
     attributionControl: false,
   });
 
   mlMap.on('load', () => {
-    // Set globe projection + 3D sky
+    // Set globe projection — flat, no tilt when idle
     try {
       mlMap.setProjection({ type: 'globe' });
-      mlMap.easeTo({ pitch: 20, duration: 1200 });
       mlMap.setSky({
         'sky-color': '#04040A',
         'sky-horizon-blend': 0.5,
@@ -629,8 +654,8 @@ function initMapLibre() {
       layout: {
         'icon-image': [
           'case',
+          ['==', ['get', 'searchMatch'], true], 'plane-search',
           ['get', 'threat'], 'plane-threat',
-          ['==', ['get', 'id'], selectedFlight ? selectedFlight.id : ''], 'plane-search',
           'plane-red'
         ],
         'icon-size': 0.7,
@@ -671,7 +696,6 @@ function initMapLibre() {
     mlMap.on('mouseleave', 'aircraft', () => popup.remove());
 
     // No auto-rotate — globe only moves when user interacts
-    mlMap.easeTo({ pitch: 20, duration: 0 });
 
     // Start live movement
     setInterval(() => {
