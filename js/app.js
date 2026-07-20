@@ -451,11 +451,24 @@ function initMapLibre() {
     zoom: 1.5,
     maxZoom: 8,
     minZoom: 1,
-    projection: { type: 'globe' },
+    maxPitch: 85,
     attributionControl: false,
   });
 
   mlMap.on('load', () => {
+    // Set globe projection + 3D sky
+    try {
+      mlMap.setProjection({ type: 'globe' });
+      mlMap.easeTo({ pitch: 20, duration: 1200 });
+      mlMap.setSky({
+        'sky-color': '#04040A',
+        'sky-horizon-blend': 0.5,
+        'horizon-color': '#0a0a1a',
+        'horizon-fog-blend': 0.3,
+        'fog-color': '#04040A',
+        'fog-ground-blend': 0.9,
+      });
+    } catch (e) { console.warn('Projection set failed:', e); }
     // Create plane icon (red aircraft silhouette)
     const planeCanvas = document.createElement('canvas');
     planeCanvas.width = 32; planeCanvas.height = 32;
