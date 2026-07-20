@@ -447,10 +447,10 @@ function initMapLibre() {
   mlMap = new maplibregl.Map({
     container: mapContainer,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    center: [0, 25],
-    zoom: 1.5,
+    center: [0, 20],
+    zoom: 1.2,
     maxZoom: 8,
-    minZoom: 1,
+    minZoom: 0.8,
     maxPitch: 85,
     attributionControl: false,
   });
@@ -670,21 +670,8 @@ function initMapLibre() {
     });
     mlMap.on('mouseleave', 'aircraft', () => popup.remove());
 
-    // Globe auto-rotate
-    let userInteracting = false;
-    mlMap.on('mousedown', () => { userInteracting = true; });
-    mlMap.on('touchstart', () => { userInteracting = true; });
-    const rotateInterval = setInterval(() => {
-      if (!userInteracting && mlMap) {
-        mlMap.rotateTo(mlMap.getBearing() + 0.3, { duration: 50 });
-      }
-    }, 100);
-    // Reset interaction flag after inactivity
-    let inactivityTimer;
-    mlMap.on('moveend', () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = setTimeout(() => { userInteracting = false; }, 5000);
-    });
+    // No auto-rotate — globe only moves when user interacts
+    mlMap.easeTo({ pitch: 20, duration: 0 });
 
     // Start live movement
     setInterval(() => {

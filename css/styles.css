@@ -279,9 +279,10 @@ button { font-family: inherit; cursor: pointer; }
 .bar-row span:last-child { color: var(--text-faint); font-family: 'JetBrains Mono', monospace; text-align: right; }
 
 /* ============================================================ GLOBE */
-.globe-wrap { position: relative; height: 520px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.globe-wrap { position: relative; height: 520px; background: #04040A; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
 #globeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
-#globeCanvas:active { cursor: grabbing; }
+#maplibreGlobe { width: 100%; height: 100%; }
+#maplibreGlobe canvas { display: block; }
 .globe-info { position: absolute; top: 16px; right: 16px; width: 260px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; backdrop-filter: blur(12px); }
 .gi-head { font-size: 10px; letter-spacing: 2px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
 .gi-empty { font-size: 13px; color: var(--text-dim); }
