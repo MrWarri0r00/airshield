@@ -447,8 +447,8 @@ function initMapLibre() {
   mlMap = new maplibregl.Map({
     container: mapContainer,
     style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    center: [0, 20],
-    zoom: 1.2,
+    center: [0, 35],
+    zoom: 1.0,
     maxZoom: 8,
     minZoom: 0.8,
     maxPitch: 85,
