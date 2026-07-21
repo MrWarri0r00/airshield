@@ -20,15 +20,17 @@ const navMenu = document.getElementById('navMenu');
 const navLinks = document.getElementById('navLinks');
 navMenu?.addEventListener('click', () => navLinks.classList.toggle('open'));
 
-/* ---------- COUNT-UP ---------- */
 function countUp(el, target, duration = 1600) {
   const start = performance.now();
+  const startVal = 0;
   const step = (now) => {
     const p = Math.min((now - start) / duration, 1);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.floor(target * eased).toLocaleString();
+    const val = Math.floor(startVal + (target - startVal) * eased);
+    // Don't use toLocaleString for years (2029), only for large numbers
+    el.textContent = target > 2100 ? val.toLocaleString() : val.toString();
     if (p < 1) requestAnimationFrame(step);
-    else el.textContent = target.toLocaleString();
+    else el.textContent = target > 2100 ? target.toLocaleString() : target.toString();
   };
   requestAnimationFrame(step);
 }
