@@ -37,7 +37,7 @@ function countUp(el, target, duration = 1600) {
 const heroObserver = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
     if (e.isIntersecting) {
-      document.querySelectorAll('.stat-num').forEach((el) => countUp(el, parseInt(el.dataset.count, 10)));
+      document.querySelectorAll('.stat-num [data-count]').forEach((el) => countUp(el, parseInt(el.dataset.count, 10)));
       heroObserver.disconnect();
     }
   });
@@ -177,6 +177,7 @@ document.querySelectorAll('.sb-dd-toggle').forEach((toggle) => {
   });
 });
 
+// Dropdown items
 // Dropdown items
 document.querySelectorAll('.sb-dd-item').forEach((item) => {
   item.addEventListener('click', () => {
