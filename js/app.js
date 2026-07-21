@@ -37,7 +37,7 @@ function countUp(el, target, duration = 1600) {
 const heroObserver = new IntersectionObserver((entries) => {
   entries.forEach((e) => {
     if (e.isIntersecting) {
-      document.querySelectorAll('.stat-num [data-count]').forEach((el) => countUp(el, parseInt(el.dataset.count, 10)));
+      document.querySelectorAll('.stat-num [data-count], .stat-num[data-count]').forEach((el) => countUp(el, parseInt(el.dataset.count, 10)));
       heroObserver.disconnect();
     }
   });
