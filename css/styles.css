@@ -79,7 +79,8 @@ button { font-family: inherit; cursor: pointer; }
 .nav-links { display: flex; gap: 30px; }
 .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-dim); transition: color 0.2s; }
 .nav-links a:hover { color: var(--text); }
-.nav-links a.cta-link { color: var(--accent); font-weight: 600; }
+.nav-links a.cta-link { color: var(--red-bright); font-weight: 600; }
+.nav-links a.cta-link:hover { color: #ff5555; text-shadow: 0 0 8px rgba(255,49,49,0.5); }
 .nav-actions { display: flex; align-items: center; gap: 12px; }
 .theme-toggle { background: var(--panel-2); border: 1px solid var(--border); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-dim); transition: all 0.2s; }
 .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
@@ -132,7 +133,7 @@ button { font-family: inherit; cursor: pointer; }
 .timeline { position: relative; margin: 56px 0 80px; padding-left: 24px; }
 .timeline-line { position: absolute; left: 31px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--red), var(--red-deep), var(--border)); }
 .timeline-node { position: relative; padding-left: 56px; margin-bottom: 32px; }
-.timeline-node .node-year { position: absolute; left: -24px; top: -4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-faint); letter-spacing: 1px; }
+.timeline-node .node-year { position: absolute; left: -44px; top: -4px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-faint); letter-spacing: 1px; }
 .node-dot { position: absolute; left: 22px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--red); border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--red), 0 0 16px var(--red-glow); }
 .node-dot.danger { background: var(--red-bright); box-shadow: 0 0 0 2px var(--red-bright), 0 0 24px var(--red-bright); }
 .node-dot.shield { background: var(--ok); box-shadow: 0 0 0 2px var(--ok), 0 0 16px rgba(46,204,113,0.5); }
