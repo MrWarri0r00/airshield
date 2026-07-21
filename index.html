@@ -107,9 +107,9 @@
     </div>
     <div class="threat-grid">
       <div class="threat-card"><div class="threat-icon">⚠</div><h3>Shor's Algorithm</h3><p>Breaks RSA and ECC (the public-key math that protects every modern handshake) once a large enough quantum machine exists.</p></div>
-      <div class="threat-card"><div class="threat-icon">↓</div><h3>Grover's Algorithm</h3><p>Weakens symmetric encryption. AES-256 effectively becomes AES-128. Still hard — but no longer "mathematically impossible."</p></div>
-      <div class="threat-card"><div class="threat-icon">⌛</div><h3>Harvest Now, Decrypt Later</h3><p>Adversaries store encrypted traffic today to decrypt retroactively. The threat isn't future — it's <em>already running</em>.</p></div>
-      <div class="threat-card"><div class="threat-icon">⚡</div><h3>AI-Accelerated Threats</h3><p>89% rise in AI-enabled attacks. Lateral breakout in 27 seconds. Quantum GANs will mutate malware faster than classical IDS can signature it.</p></div>
+      <div class="threat-card"><div class="threat-icon">↓</div><h3>Grover's Algorithm</h3><p>Weakens symmetric encryption. AES-256 effectively becomes AES-128. Still hard, but no longer "mathematically impossible."</p></div>
+      <div class="threat-card"><div class="threat-icon">⌛</div><h3>Harvest Now, Decrypt Later</h3><p>Cybercriminals store encrypted traffic today to decrypt retroactively.</p></div>
+      <div class="threat-card"><div class="threat-icon">⚡</div><h3>AI-Accelerated Threats</h3><p>There is a 89% rise in AI-enabled attacks. A record breaking cyberattack happening in just 27 seconds. Quantum GANs will mutate malware faster than classical IDS can signature it.</p></div>
     </div>
   </section>
 
@@ -119,10 +119,7 @@
       <div class="section-tag">02 · THE ANSWER</div>
       <h2>Fight a <span class="accent">quantum threat</span> with a <span class="accent">quantum defense</span>.</h2>
       <p class="section-lead">
-        Air Shield is a three-layer Quantum Zero-Trust architecture purpose-built
-        for the aircraft of 2050. Each layer addresses a specific failure mode
-        of classical cybersecurity — and together they form a physically
-        unbreakable barrier between an adversary and your flight systems.
+        Air Shield is a three-layer Quantum Zero-Trust architecture purpose-built for the aircraft of 2050. Each layer addresses a specific failure mode of classical cybersecurity and together they form a physically unbreakable barrier between a cybercriminal and your flight systems.
       </p>
     </div>
     <div class="layer-stack">
@@ -130,16 +127,14 @@
         <div class="layer-num">L1</div>
         <div class="layer-body">
           <h3>Generation — QRNG</h3>
-          <p>Quantum Random Number Generators harvest true, physically-unpredictable randomness from vacuum fluctuations. Even an adversary with infinite computing power cannot reverse-engineer a quantum-generated key — because there is no underlying pattern to reverse.</p>
-          <div class="layer-tech">micro-QRNG chips · 2.5 mm² · embedded in avionics HSMs</div>
+          <p>Quantum Random Number Generators (QRNG) harvest true, physically-unpredictable randomness from vacuum fluctuations. Even an adversary with infinite computing power cannot reverse-engineer a quantum-generated key because there is no underlying pattern to reverse.</p>
         </div>
       </div>
       <div class="layer">
         <div class="layer-num">L2</div>
         <div class="layer-body">
           <h3>Transport — QKD + PQC</h3>
-          <p>Quantum Key Distribution delivers keys encoded on single photons across fiber or satellite links. Any interception physically collapses the photon state — destroying the key before any data is sent. PQC (ML-KEM, ML-DSA) authenticates device identities on the classical side.</p>
-          <div class="layer-tech">No-Cloning Theorem · FIPS 203 / 204 · satellite-to-aircraft laser links</div>
+          <p>Quantum Key Distribution (QKD) delivers keys encoded on single photons across fiber or satellite links. Any interception physically collapses the photon state, destroying the key before any data is sent. PQC (ML-KEM, ML-DSA) authenticates device identities on the classical side.</p>
         </div>
       </div>
       <div class="layer">
@@ -147,7 +142,6 @@
         <div class="layer-body">
           <h3>Defense — QSVM / QML</h3>
           <p>Quantum Support Vector Machines analyze high-dimensional network traffic in real-time, isolating zero-day malware and mutated QGAN attacks long before a classical IDS could flag the anomaly. The only thing that catches a quantum AI is a quantum AI.</p>
-          <div class="layer-tech">Quantum Neural Networks · Hilbert-space classification · sub-second response</div>
         </div>
       </div>
     </div>
@@ -158,7 +152,7 @@
     <div class="section-head">
       <div class="section-tag">03 · ARCHITECTURE</div>
       <h2>Inside <span class="accent">Air Shield</span></h2>
-      <p class="section-lead">A retrofit-ready module that brings legacy avionics up to a quantum-native security posture — without replacing the aircraft.</p>
+      <p class="section-lead">A retrofit-ready module that brings legacy avionics up to a quantum-native security posture without replacing the aircraft.</p>
     </div>
     <div class="arch-diagram">
       <div class="arch-plane">
@@ -185,10 +179,10 @@
       </div>
     </div>
     <div class="arch-features">
-      <div class="feat"><h4>Cold-Atom Navigation</h4><p>Quantum inertial sensors measure acceleration with atomic precision. Aircraft navigate globally for months without GPS — neutralizing spoofing and jamming forever.</p></div>
-      <div class="feat"><h4>Tamper-Evident Flight Log</h4><p>Every flight data record is committed via QKD to ground as it happens. Any post-hoc tampering with the black box physically breaks the quantum hash — you can't fake the log.</p></div>
+      <div class="feat"><h4>Cold-Atom Navigation</h4><p>Quantum inertial sensors measure acceleration with atomic precision. Aircraft navigate globally for months without GPS, neutralizing spoofing and jamming forever.</p></div>
+      <div class="feat"><h4>Tamper-Evident Flight Log</h4><p>Every flight data record is committed via QKD to ground as it happens. Any post-hoc tampering with the black box physically breaks the quantum hash</p></div>
       <div class="feat"><h4>Cryptographic Agility Score</h4><p>A live 0–100 metric showing how quantum-ready each aircraft's crypto stack is. Executives get a single number to track fleet readiness across the entire RTX portfolio.</p></div>
-      <div class="feat"><h4>Retrofit, Don't Replace</h4><p>Air Shield drops in as a module — not a fleet replacement. Thousands of fielded aircraft upgrade to PQC + QKD without scrapping their existing avionics suite. That's a product RTX can actually sell.</p></div>
+      <div class="feat"><h4>Retrofit, Don't Replace</h4><p>Air Shield drops in as a module. Thousands of fielded aircraft upgrade to PQC + QKD without scrapping their existing avionics suite. That's a product RTX can actually sell.</p></div>
     </div>
   </section>
 
@@ -198,9 +192,7 @@
       <div class="section-tag">04 · LIVE DEMO</div>
       <h2>Air Shield <span class="accent">Command Console</span></h2>
       <p class="section-lead">
-        A live, interactive simulation of the Air Shield operator interface —
-        the same view a ground controller or SOC analyst would monitor in 2050.
-        Full-screen dashboard with a live globe, threat feed, fleet registry, and quantum key vault.
+        A live, interactive simulation of the Air Shield operator interface, the same view a ground controller or SOC analyst would monitor in 2050.
       </p>
     </div>
     <div class="demo-cta">
@@ -209,7 +201,7 @@
         <div class="demo-card-content">
           <div class="demo-icon">◐</div>
           <h3>Open Command Console</h3>
-          <p>Full-screen interactive dashboard — live 3D globe with clickable aircraft, streaming threat feed, searchable flight registry, crypto agility scores, and rotating quantum keys.</p>
+          <p>Interactive dashboard: live 3D globe with clickable aircraft, streaming threat feed, searchable flight registry, crypto agility scores, and rotating quantum keys.</p>
           <span class="demo-link">Launch Console
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </span>
@@ -228,7 +220,7 @@
       <div class="road-item"><div class="road-year">2026</div><h4>Concept &amp; Prototype</h4><p>PQC migration inventory. ML-KEM / ML-DSA pilots. SNDL advisory published. Air Shield architecture drafted.</p></div>
       <div class="road-item"><div class="road-year">2029</div><h4>Hardware Anchor</h4><p>Microsoft Majorana 2 ships. First QKD satellite-to-aircraft links. Air Shield retrofit module fielded on RTX platforms.</p></div>
       <div class="road-item"><div class="road-year">2035</div><h4>Q-Day Preparedness</h4><p>Fleet-wide PQC migration complete. QSVM firewalls standard. Cold-atom nav deployed on all new airframes.</p></div>
-      <div class="road-item"><div class="road-year">2050</div><h4>Quantum-Native Skies</h4><p>Air Shield is the default. Tamper-evident logs, quantum navigation, QSVM defense — the new standard for flight security.</p></div>
+      <div class="road-item"><div class="road-year">2050</div><h4>Quantum-Native Skies</h4><p>Air Shield is the default. Tamper-evident logs, quantum navigation, QSVM defense, the new standard for flight security.</p></div>
     </div>
   </section>
 
@@ -242,16 +234,14 @@
           <div class="footer-tag">Quantum Cybersecurity · RTX 2026</div>
         </div>
       </div>
+      <div class="footer-nav">
+        <a href="#top">Back to Top ↑</a>
+        <a href="console.html">Launch Demo →</a>
+        <a href="definitions.html">Definitions</a>
+      </div>
       <div class="footer-meta">
         <div>Raytheon · Team 18</div>
         <div>"How will we fly in 2050?"</div>
-      </div>
-      <div class="footer-sources">
-        <strong>Sources</strong>
-        <span>NIST FIPS 203 / 204</span>
-        <span>NSA / CISA SNDL Advisory</span>
-        <span>IETF RFC 8446 (TLS 1.3)</span>
-        <span>Microsoft Majorana 2 (2026)</span>
       </div>
     </div>
   </footer>
