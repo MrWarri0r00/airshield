@@ -485,43 +485,99 @@ renderRegistry();
 
 /* ---------- SEARCH ---------- */
 const searchInput = document.getElementById('flightSearch');
+const searchResults = document.getElementById('searchResults');
 let currentSearch = '';
+let searchMatches = [];
+
+function renderSearchDropdown(query) {
+  if (!searchResults) return;
+  const f = query.toUpperCase();
+  if (!f || f.length < 1) {
+    searchResults.classList.remove('open');
+    searchResults.innerHTML = '';
+    return;
+  }
+  searchMatches = FLIGHTS.filter(fl =>
+    fl.id.toUpperCase().includes(f) || fl.from.toUpperCase().includes(f) ||
+    fl.to.toUpperCase().includes(f) || fl.type.toUpperCase().includes(f)
+  ).slice(0, 8); // show max 8 results
+
+  if (searchMatches.length === 0) {
+    searchResults.innerHTML = '<div class="search-result-item" style="cursor:default;color:var(--text-faint);">No matches found</div>';
+    searchResults.classList.add('open');
+    return;
+  }
+
+  searchResults.innerHTML = searchMatches.map((fl, i) =>
+    `<div class="search-result-item" data-idx="${i}">
+      <span class="search-result-id">${fl.id}</span>
+      <span class="search-result-route">${fl.from} → ${fl.to}</span>
+      <span class="search-result-type">${fl.type}</span>
+    </div>`
+  ).join('');
+  searchResults.classList.add('open');
+
+  // Click handler for each result
+  searchResults.querySelectorAll('.search-result-item[data-idx]').forEach(item => {
+    item.addEventListener('click', () => {
+      const idx = parseInt(item.dataset.idx);
+      const fl = searchMatches[idx];
+      if (fl) flyToPlane(fl);
+    });
+  });
+}
+
+function flyToPlane(fl) {
+  // Clear search
+  if (searchInput) searchInput.value = '';
+  searchResults?.classList.remove('open');
+  searchResults.innerHTML = '';
+  // Highlight this plane on globe
+  FLIGHTS.forEach(f => f.searchMatch = false);
+  fl.searchMatch = true;
+  selectedFlight = fl;
+  // Switch to globe and fly to plane
+  activatePanel('globe');
+  // If globe is loaded, fly to it
+  if (mlMap) {
+    setTimeout(() => {
+      mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: Math.max(mlMap.getZoom(), 4), duration: 1500 });
+      updateGlobeInfo(fl);
+      updateRouteLines();
+    }, 200);
+  }
+}
+
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     currentSearch = e.target.value;
-    // Re-render registry with filter
+    renderSearchDropdown(currentSearch);
+    // Also filter registry and fleet in background
     renderRegistry(currentSearch);
-    // Filter fleet grid
     const f = currentSearch.toUpperCase();
     document.querySelectorAll('.fleet-card').forEach((card) => {
       const id = card.querySelector('.fleet-id')?.textContent.toUpperCase();
       const route = card.querySelector('.fleet-route')?.textContent.toUpperCase();
       card.style.display = (!f || (id && id.includes(f)) || (route && route.includes(f))) ? '' : 'none';
     });
-    // Highlight matching planes on the globe
-    if (f) {
-      let matchCount = 0;
-      FLIGHTS.forEach((fl) => {
-        const match = fl.id.toUpperCase().includes(f) || fl.from.toUpperCase().includes(f) || fl.to.toUpperCase().includes(f) || fl.type.toUpperCase().includes(f);
-        fl.searchMatch = match;
-        if (match) matchCount++;
-      });
-      // Show a small results toast
-      let toast = document.getElementById('searchToast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'searchToast';
-        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:10px 20px;color:var(--text);font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);transition:opacity 0.3s;';
-        document.body.appendChild(toast);
-      }
-      toast.textContent = matchCount + ' aircraft match "' + currentSearch + '" — check Flight Registry or Live Globe';
-      toast.style.opacity = '1';
-      clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
-    } else {
-      FLIGHTS.forEach((fl) => { fl.searchMatch = false; });
-      const toast = document.getElementById('searchToast');
-      if (toast) toast.style.opacity = '0';
+  });
+
+  // Enter key — fly to first match
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && searchMatches.length > 0) {
+      flyToPlane(searchMatches[0]);
+    }
+    if (e.key === 'Escape') {
+      searchInput.value = '';
+      searchResults?.classList.remove('open');
+      renderRegistry('');
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.console-search')) {
+      searchResults?.classList.remove('open');
     }
   });
 }
