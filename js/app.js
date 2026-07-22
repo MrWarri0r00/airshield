@@ -504,6 +504,10 @@ if (searchInput) {
         const match = fl.id.toUpperCase().includes(f) || fl.from.toUpperCase().includes(f) || fl.to.toUpperCase().includes(f) || fl.type.toUpperCase().includes(f);
         fl.searchMatch = match;
       });
+      // Auto-switch to Registry tab so user can see results
+      if (currentSearch.length >= 2) {
+        activatePanel('registry');
+      }
     } else {
       FLIGHTS.forEach((fl) => { fl.searchMatch = false; });
     }
