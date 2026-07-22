@@ -956,6 +956,112 @@ const view3DBtn = document.getElementById('view3D');
 const view2DBtn = document.getElementById('view2D');
 const viewDarkBtn = document.getElementById('viewDark');
 const viewSatBtn = document.getElementById('viewSat');
+let currentStyle = 'dark';
+
+// Function to re-add all layers after a style change
+function reAddAllLayers() {
+  if (!mlMap) return;
+  // Re-add plane icons
+  addPlaneIcons();
+  // Re-add sources
+  mlMap.addSource('flights', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: FLIGHTS.map(fl => ({
+      type: 'Feature', geometry: { type: 'Point', coordinates: [fl.lon, fl.lat] },
+      properties: { id: fl.id, from: fl.from, to: fl.to, type: fl.type, alt: fl.alt, spd: fl.spd, heading: fl.heading, score: fl.score, status: fl.status, threat: fl.threat, qkd: fl.qkd, searchMatch: fl.searchMatch || false }
+    }))}
+  });
+  // Airports
+  const airportFeatures = [];
+  const drawnAirports = new Set();
+  FLIGHTS.forEach(fl => {
+    [fl.from, fl.to].forEach(code => {
+      if (drawnAirports.has(code)) return;
+      drawnAirports.add(code);
+      const coords = AIRPORTS[code];
+      if (coords) airportFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [coords[1], coords[0]] }, properties: { code } });
+    });
+  });
+  mlMap.addSource('airports', { type: 'geojson', data: { type: 'FeatureCollection', features: airportFeatures } });
+  // Trails
+  mlMap.addSource('trails', { type: 'geojson', data: { type: 'FeatureCollection', features: FLIGHTS.filter(fl => fl.trail && fl.trail.length > 1).map(fl => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: fl.trail.map(t => [t[1], t[0]]) }, properties: { id: fl.id } })) } });
+  // Route lines
+  mlMap.addSource('route-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  // Layers
+  addAllMapLayers();
+}
+
+function addPlaneIcons() {
+  // Red plane
+  const pc = document.createElement('canvas'); pc.width = 32; pc.height = 32;
+  const pctx = pc.getContext('2d');
+  pctx.fillStyle = '#ff3131';
+  pctx.beginPath();
+  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
+  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
+  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
+  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
+  pctx.closePath(); pctx.fill();
+  if (!mlMap.hasImage('plane-red')) mlMap.addImage('plane-red', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
+  // Threat
+  pctx.clearRect(0, 0, 32, 32); pctx.fillStyle = '#660018';
+  pctx.beginPath();
+  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
+  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
+  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
+  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
+  pctx.closePath(); pctx.fill();
+  if (!mlMap.hasImage('plane-threat')) mlMap.addImage('plane-threat', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
+  // Search
+  pctx.clearRect(0, 0, 32, 32); pctx.fillStyle = '#ffcc00';
+  pctx.beginPath();
+  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
+  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
+  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
+  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
+  pctx.closePath(); pctx.fill();
+  if (!mlMap.hasImage('plane-search')) mlMap.addImage('plane-search', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
+  // Airport
+  const ac = document.createElement('canvas'); ac.width = 16; ac.height = 16;
+  const actx = ac.getContext('2d');
+  actx.fillStyle = '#78c8ff'; actx.beginPath(); actx.arc(8, 8, 5, 0, Math.PI * 2); actx.fill();
+  actx.strokeStyle = '#78c8ff'; actx.lineWidth = 1; actx.beginPath(); actx.arc(8, 8, 7, 0, Math.PI * 2); actx.stroke();
+  if (!mlMap.hasImage('airport')) mlMap.addImage('airport', { width: 16, height: 16, data: new Uint8Array(actx.getImageData(0, 0, 16, 16).data) });
+}
+
+function addAllMapLayers() {
+  // Airport labels
+  mlMap.addLayer({ id: 'airport-labels', type: 'symbol', source: 'airports', layout: { 'icon-image': 'airport', 'icon-size': 0.8, 'text-field': ['get','code'], 'text-font': ['Open Sans Semibold'], 'text-size': 10, 'text-offset': [0,-1.5], 'text-anchor': 'bottom' }, paint: { 'text-color': '#78c8ff', 'text-halo-color': '#000', 'text-halo-width': 1 } });
+  // Trails
+  mlMap.addLayer({ id: 'trail-lines', type: 'line', source: 'trails', paint: { 'line-color': '#ff3131', 'line-width': 1.5, 'line-opacity': 0.4 } });
+  // Route lines
+  mlMap.addLayer({ id: 'route-line-layer', type: 'line', source: 'route-lines', paint: { 'line-color': '#ffcc00', 'line-width': 1.5, 'line-opacity': 0.5, 'line-dasharray': [2,2] } });
+  // Aircraft
+  mlMap.addLayer({ id: 'aircraft', type: 'symbol', source: 'flights', layout: { 'icon-image': ['case',['==',['get','searchMatch'],true],'plane-search',['get','threat'],'plane-threat','plane-red'], 'icon-size': 0.7, 'icon-rotate': ['get','heading'], 'icon-rotation-alignment': 'map', 'icon-allow-overlap': true }, paint: { 'icon-opacity': 0.9 } });
+  // Re-attach click + hover handlers
+  mlMap.on('click', 'aircraft', (e) => {
+    const f = e.features[0]; const fl = FLIGHTS.find(x => x.id === f.properties.id);
+    if (fl) { selectedFlight = fl; updateGlobeInfo(fl); updateRouteLines(); openEntityGraph(fl); }
+  });
+  mlMap.on('mouseenter', 'aircraft', () => { mlMap.getCanvas().style.cursor = 'pointer'; });
+  mlMap.on('mouseleave', 'aircraft', () => { mlMap.getCanvas().style.cursor = ''; });
+  const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 15 });
+  mlMap.on('mouseenter', 'aircraft', (e) => {
+    const f = e.features[0]; const coords = f.geometry.coordinates.slice();
+    const html = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;background:transparent;padding:8px 12px;border:1px solid #cc0001;border-radius:6px;min-width:160px;">
+      <div style="color:#ff3131;font-weight:700;font-size:12px;margin-bottom:4px;">${f.properties.id}</div>
+      <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.from} → ${f.properties.to}</div>
+      <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.type}</div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <span style="color:#00e5ff;">${Math.round(f.properties.alt).toLocaleString()}ft</span>
+        <span style="color:#e8e8f0;">${f.properties.spd}kt</span>
+        <span style="color:#e8e8f0;">${Math.round(f.properties.heading)}°</span>
+      </div>
+    </div>`;
+    popup.setLngLat(coords).setHTML(html).addTo(mlMap);
+  });
+  mlMap.on('mouseleave', 'aircraft', () => popup.remove());
+}
 
 view3DBtn?.addEventListener('click', () => {
   if (!mlMap) return;
@@ -970,65 +1076,22 @@ view2DBtn?.addEventListener('click', () => {
 viewDarkBtn?.addEventListener('click', () => {
   if (!mlMap) return;
   viewDarkBtn.classList.add('active'); viewSatBtn.classList.remove('active');
+  currentStyle = 'dark';
   mlMap.setStyle('https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json');
 });
 viewSatBtn?.addEventListener('click', () => {
   if (!mlMap) return;
   viewSatBtn.classList.add('active'); viewDarkBtn.classList.remove('active');
+  currentStyle = 'sat';
   mlMap.setStyle('https://basemaps.cartocdn.com/gl/satellite-gl-style/style.json');
 });
-
-/* ============================================================ SCAN/SWEEP ANIMATION */
-const scanBtn = document.getElementById('scanBtn');
-let scanActive = false;
-scanBtn?.addEventListener('click', () => {
-  if (!mlMap || scanActive) return;
-  scanActive = true;
-  scanBtn.classList.add('scanning');
-  scanBtn.textContent = 'SCANNING...';
-
-  // Get center of current view
-  const center = mlMap.getCenter();
-  const zoom = mlMap.getZoom();
-  const radius = 5 / Math.pow(2, zoom - 1); // roughly 5 degrees at zoom 1
-
-  // Add scan pulse source
-  if (!mlMap.getSource('scan-pulse')) {
-    mlMap.addSource('scan-pulse', {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: [{
-        type: 'Feature', geometry: { type: 'Point', coordinates: [center.lng, center.lat] }, properties: {}
-      }]}
-    });
-    mlMap.addLayer({
-      id: 'scan-pulse-ring',
-      type: 'circle',
-      source: 'scan-pulse',
-      paint: {
-        'circle-radius': 0,
-        'circle-color': 'transparent',
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#ff3131',
-        'circle-stroke-opacity': 0.8,
-      }
-    });
+// Re-add layers after style change
+mlMap?.on('style.load', () => {
+  addPlaneIcons();
+  reAddAllLayers();
+  if (currentStyle === 'dark') {
+    try { mlMap.setSky({ 'sky-color': '#04040A', 'sky-horizon-blend': 0.5, 'horizon-color': '#0a0a1a', 'horizon-fog-blend': 0.3, 'fog-color': '#04040A', 'fog-ground-blend': 0.9 }); } catch(e) {}
   }
-
-  // Animate the ring expanding
-  let scanRadius = 0;
-  const maxRadius = 200;
-  const scanInterval = setInterval(() => {
-    scanRadius += 5;
-    mlMap.setPaintProperty('scan-pulse-ring', 'circle-radius', scanRadius);
-    mlMap.setPaintProperty('scan-pulse-ring', 'circle-stroke-opacity', Math.max(0, 0.8 - (scanRadius / maxRadius) * 0.8));
-    if (scanRadius >= maxRadius) {
-      clearInterval(scanInterval);
-      scanActive = false;
-      scanBtn.classList.remove('scanning');
-      scanBtn.textContent = 'SCAN';
-      mlMap.setPaintProperty('scan-pulse-ring', 'circle-radius', 0);
-    }
-  }, 30);
 });
 
 /* ============================================================ ENTITY GRAPH PANEL */
