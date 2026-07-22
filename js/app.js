@@ -823,7 +823,7 @@ function initMapLibre() {
       }
     });
 
-    // Click handler
+    // Click handler — opens entity graph panel
     mlMap.on('click', 'aircraft', (e) => {
       const f = e.features[0];
       const fl = FLIGHTS.find(x => x.id === f.properties.id);
@@ -831,6 +831,7 @@ function initMapLibre() {
         selectedFlight = fl;
         updateGlobeInfo(fl);
         updateRouteLines();
+        openEntityGraph(fl);
       }
     });
 
@@ -838,13 +839,20 @@ function initMapLibre() {
     mlMap.on('mouseenter', 'aircraft', () => { mlMap.getCanvas().style.cursor = 'pointer'; });
     mlMap.on('mouseleave', 'aircraft', () => { mlMap.getCanvas().style.cursor = ''; });
 
-    // Popup on hover
+    // Popup on hover — shows model info
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 15 });
     mlMap.on('mouseenter', 'aircraft', (e) => {
       const f = e.features[0];
       const coords = f.geometry.coordinates.slice();
-      const html = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;background:#0a0e1a;padding:6px 10px;border:1px solid #cc0001;border-radius:4px;">
-        <span style="color:#ff3131;font-weight:bold">${f.properties.id}</span> · ${f.properties.from}→${f.properties.to} · ${Math.round(f.properties.alt).toLocaleString()}ft
+      const html = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;background:#0a0e1a;padding:8px 12px;border:1px solid #cc0001;border-radius:6px;min-width:160px;">
+        <div style="color:#ff3131;font-weight:700;font-size:12px;margin-bottom:4px;">${f.properties.id}</div>
+        <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.from} → ${f.properties.to}</div>
+        <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.type}</div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <span style="color:#00e5ff;">${Math.round(f.properties.alt).toLocaleString()}ft</span>
+          <span style="color:#e8e8f0;">${f.properties.spd}kt</span>
+          <span style="color:#e8e8f0;">${Math.round(f.properties.heading)}°</span>
+        </div>
       </div>`;
       popup.setLngLat(coords).setHTML(html).addTo(mlMap);
     });
@@ -942,3 +950,199 @@ document.querySelectorAll('.sb-dd-item').forEach(item => {
     }
   });
 });
+
+/* ============================================================ 2D/3D + SATELLITE TOGGLE */
+const view3DBtn = document.getElementById('view3D');
+const view2DBtn = document.getElementById('view2D');
+const viewDarkBtn = document.getElementById('viewDark');
+const viewSatBtn = document.getElementById('viewSat');
+
+view3DBtn?.addEventListener('click', () => {
+  if (!mlMap) return;
+  view3DBtn.classList.add('active'); view2DBtn.classList.remove('active');
+  mlMap.setProjection({ type: 'globe' });
+});
+view2DBtn?.addEventListener('click', () => {
+  if (!mlMap) return;
+  view2DBtn.classList.add('active'); view3DBtn.classList.remove('active');
+  mlMap.setProjection({ type: 'mercator' });
+});
+viewDarkBtn?.addEventListener('click', () => {
+  if (!mlMap) return;
+  viewDarkBtn.classList.add('active'); viewSatBtn.classList.remove('active');
+  mlMap.setStyle('https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json');
+});
+viewSatBtn?.addEventListener('click', () => {
+  if (!mlMap) return;
+  viewSatBtn.classList.add('active'); viewDarkBtn.classList.remove('active');
+  mlMap.setStyle('https://basemaps.cartocdn.com/gl/satellite-gl-style/style.json');
+});
+
+/* ============================================================ SCAN/SWEEP ANIMATION */
+const scanBtn = document.getElementById('scanBtn');
+let scanActive = false;
+scanBtn?.addEventListener('click', () => {
+  if (!mlMap || scanActive) return;
+  scanActive = true;
+  scanBtn.classList.add('scanning');
+  scanBtn.textContent = 'SCANNING...';
+
+  // Get center of current view
+  const center = mlMap.getCenter();
+  const zoom = mlMap.getZoom();
+  const radius = 5 / Math.pow(2, zoom - 1); // roughly 5 degrees at zoom 1
+
+  // Add scan pulse source
+  if (!mlMap.getSource('scan-pulse')) {
+    mlMap.addSource('scan-pulse', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [{
+        type: 'Feature', geometry: { type: 'Point', coordinates: [center.lng, center.lat] }, properties: {}
+      }]}
+    });
+    mlMap.addLayer({
+      id: 'scan-pulse-ring',
+      type: 'circle',
+      source: 'scan-pulse',
+      paint: {
+        'circle-radius': 0,
+        'circle-color': 'transparent',
+        'circle-stroke-width': 2,
+        'circle-stroke-color': '#ff3131',
+        'circle-stroke-opacity': 0.8,
+      }
+    });
+  }
+
+  // Animate the ring expanding
+  let scanRadius = 0;
+  const maxRadius = 200;
+  const scanInterval = setInterval(() => {
+    scanRadius += 5;
+    mlMap.setPaintProperty('scan-pulse-ring', 'circle-radius', scanRadius);
+    mlMap.setPaintProperty('scan-pulse-ring', 'circle-stroke-opacity', Math.max(0, 0.8 - (scanRadius / maxRadius) * 0.8));
+    if (scanRadius >= maxRadius) {
+      clearInterval(scanInterval);
+      scanActive = false;
+      scanBtn.classList.remove('scanning');
+      scanBtn.textContent = 'SCAN';
+      mlMap.setPaintProperty('scan-pulse-ring', 'circle-radius', 0);
+    }
+  }, 30);
+});
+
+/* ============================================================ ENTITY GRAPH PANEL */
+const egpPanel = document.getElementById('entityGraphPanel');
+const egpClose = document.getElementById('egpClose');
+const egpInfo = document.getElementById('egpInfo');
+const egpCanvas = document.getElementById('entityGraphCanvas');
+
+egpClose?.addEventListener('click', () => egpPanel.classList.remove('open'));
+
+function openEntityGraph(fl) {
+  if (!egpPanel) return;
+  egpPanel.classList.add('open');
+  if (egpInfo) egpInfo.innerHTML = `<strong style="color:var(--accent)">${fl.id}</strong> · ${fl.from} → ${fl.to} · ${fl.type}`;
+
+  // Build entity graph: aircraft → airline → airports → countries → threats
+  const nodes = [
+    { id: fl.id, label: fl.id, type: 'aircraft', x: 180, y: 200 },
+    { id: 'from-' + fl.from, label: fl.from, type: 'airport', x: 80, y: 100 },
+    { id: 'to-' + fl.to, label: fl.to, type: 'airport', x: 280, y: 100 },
+    { id: 'airline', label: 'RTX Defense', type: 'company', x: 180, y: 80 },
+    { id: 'country-from', label: fl.from + ' Region', type: 'country', x: 50, y: 300 },
+    { id: 'country-to', label: fl.to + ' Region', type: 'country', x: 310, y: 300 },
+    { id: 'qkd', label: 'QKD Link', type: 'system', x: 100, y: 200 },
+    { id: 'qsvm', label: 'QSVM Firewall', type: 'system', x: 260, y: 200 },
+  ];
+  if (fl.threat) {
+    nodes.push({ id: 'threat', label: 'THREAT', type: 'threat', x: 180, y: 320 });
+  }
+  const links = [
+    { source: fl.id, target: 'from-' + fl.from, label: 'departs' },
+    { source: fl.id, target: 'to-' + fl.to, label: 'arrives' },
+    { source: fl.id, target: 'airline', label: 'operated by' },
+    { source: 'from-' + fl.from, target: 'country-from', label: 'located in' },
+    { source: 'to-' + fl.to, target: 'country-to', label: 'located in' },
+    { source: fl.id, target: 'qkd', label: 'protected by' },
+    { source: fl.id, target: 'qsvm', label: 'monitored by' },
+  ];
+  if (fl.threat) {
+    links.push({ source: fl.id, target: 'threat', label: 'UNDER ATTACK' });
+  }
+
+  drawEntityGraph(nodes, links);
+}
+
+function drawEntityGraph(nodes, links) {
+  if (!egpCanvas) return;
+  const ctx = egpCanvas.getContext('2d');
+  const W = egpCanvas.width;
+  const H = egpCanvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const typeColors = {
+    aircraft: '#ff3131', airport: '#78c8ff', company: '#ffcc00',
+    country: '#2ecc71', system: '#00e5ff', threat: '#ff1744',
+  };
+
+  // Animate: simple force simulation
+  let frame = 0;
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Apply slight force: push nodes apart
+    nodes.forEach(n => {
+      nodes.forEach(m => {
+        if (n.id === m.id) return;
+        const dx = n.x - m.x, dy = n.y - m.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 80 && d > 0) {
+          const force = (80 - d) * 0.02;
+          n.x += (dx / d) * force; n.y += (dy / d) * force;
+        }
+      });
+      // Keep in bounds
+      n.x = Math.max(30, Math.min(W - 30, n.x));
+      n.y = Math.max(30, Math.min(H - 30, n.y));
+    });
+
+    // Draw links
+    links.forEach(l => {
+      const s = nodes.find(n => n.id === l.source);
+      const t = nodes.find(n => n.id === l.target);
+      if (!s || !t) return;
+      ctx.strokeStyle = l.label === 'UNDER ATTACK' ? '#ff1744' : 'rgba(255,49,49,0.3)';
+      ctx.lineWidth = l.label === 'UNDER ATTACK' ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+
+      // Link label
+      const mx = (s.x + t.x) / 2, my = (s.y + t.y) / 2;
+      ctx.fillStyle = 'rgba(138,150,180,0.6)';
+      ctx.font = '8px JetBrains Mono';
+      ctx.fillText(l.label, mx - 20, my);
+    });
+
+    // Draw nodes
+    nodes.forEach(n => {
+      const color = typeColors[n.type] || '#888';
+      // glow
+      ctx.shadowColor = color; ctx.shadowBlur = 10;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.type === 'aircraft' ? 10 : 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      // label
+      ctx.fillStyle = '#e8e8f0';
+      ctx.font = '10px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText(n.label, n.x, n.y + 20);
+    });
+
+    frame++;
+    if (frame < 60) requestAnimationFrame(animate);
+  }
+  animate();
+}

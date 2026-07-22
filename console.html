@@ -245,6 +245,17 @@
               <div class="gi-head">SELECT AN AIRCRAFT</div>
               <div class="gi-empty">Click any red plane on the globe to view live flight data.</div>
             </div>
+            <div class="globe-controls">
+              <div class="globe-control-group">
+                <button class="globe-btn active" id="view3D" title="3D Globe">3D</button>
+                <button class="globe-btn" id="view2D" title="2D Map">2D</button>
+              </div>
+              <div class="globe-control-group">
+                <button class="globe-btn active" id="viewDark" title="Dark map">DARK</button>
+                <button class="globe-btn" id="viewSat" title="Satellite view">SAT</button>
+              </div>
+              <button class="globe-btn globe-scan-btn" id="scanBtn" title="Scan area">SCAN</button>
+            </div>
             <div class="globe-legend">
               <div><span class="legend-dot" style="background:#ff3131"></span> Protected Aircraft</div>
               <div><span class="legend-dot" style="background:#660018"></span> Threat Detected</div>
@@ -313,6 +324,16 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- ENTITY GRAPH PANEL (slide-in from right) -->
+    <div class="entity-graph-panel" id="entityGraphPanel">
+      <div class="egp-header">
+        <div class="egp-title">Entity Graph</div>
+        <button class="egp-close" id="egpClose">✕</button>
+      </div>
+      <div class="egp-info" id="egpInfo">Click an aircraft to see its relationships.</div>
+      <canvas id="entityGraphCanvas" width="360" height="400"></canvas>
     </div>
   </div>
   <script src="js/app.js"></script>
