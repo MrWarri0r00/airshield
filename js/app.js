@@ -536,10 +536,21 @@ function flyToPlane(fl) {
   FLIGHTS.forEach(f => f.searchMatch = false);
   fl.searchMatch = true;
   selectedFlight = fl;
-  // Switch to globe and fly to plane
+  // Switch to globe panel
   activatePanel('globe');
-  // If globe is loaded, fly to it
-  if (mlMap) {
+  // Initialize globe if not loaded yet, then fly to plane
+  if (!mlMap) {
+    initMapLibre();
+    // Wait for map to load, then fly
+    const checkLoaded = setInterval(() => {
+      if (mlMap && mlMap.loaded()) {
+        clearInterval(checkLoaded);
+        mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: 4, duration: 1500 });
+        updateGlobeInfo(fl);
+        updateRouteLines();
+      }
+    }, 200);
+  } else {
     setTimeout(() => {
       mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: Math.max(mlMap.getZoom(), 4), duration: 1500 });
       updateGlobeInfo(fl);
