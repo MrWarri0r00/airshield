@@ -82,8 +82,10 @@ button { font-family: inherit; cursor: pointer; }
 /* ============================================================ REVEAL ANIMATIONS */
 [data-reveal] { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
 [data-reveal].revealed { opacity: 1; transform: translateY(0); }
+[data-reveal].unloaded { opacity: 0; transform: translateY(-30px); transition: opacity 0.5s ease, transform 0.5s ease; }
 [data-reveal-stagger] > * { opacity: 0; transform: translateY(30px); transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
 [data-reveal-stagger].revealed > * { opacity: 1; transform: translateY(0); }
+[data-reveal-stagger].unloaded > * { opacity: 0; transform: translateY(-20px); transition: opacity 0.4s ease, transform 0.4s ease; }
 [data-reveal-stagger].revealed > *:nth-child(1) { transition-delay: 0s; }
 [data-reveal-stagger].revealed > *:nth-child(2) { transition-delay: 0.1s; }
 [data-reveal-stagger].revealed > *:nth-child(3) { transition-delay: 0.2s; }

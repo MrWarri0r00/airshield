@@ -29,12 +29,15 @@ window.addEventListener('scroll', () => {
   if (navEl) { if (scrolled > 50) navEl.style.borderBottomColor = 'var(--border)'; else navEl.style.borderBottomColor = 'transparent'; }
 });
 
-/* ---------- REVEAL ON SCROLL ---------- */
+/* ---------- REVEAL ON SCROLL (load + unload) ---------- */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
     if (e.isIntersecting) {
       e.target.classList.add('revealed');
-      revealObserver.unobserve(e.target);
+      e.target.classList.remove('unloaded');
+    } else {
+      e.target.classList.remove('revealed');
+      e.target.classList.add('unloaded');
     }
   });
 }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
