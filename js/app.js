@@ -670,7 +670,17 @@ function showFlightOnGlobe(fl) {
   selectedFlight = fl;
   activatePanel('globe');
   updateGlobeInfo(fl);
-  if (mlMap && fl) {
+  // Initialize globe if not loaded yet, then fly to plane
+  if (!mlMap) {
+    initMapLibre();
+    const checkLoaded = setInterval(() => {
+      if (mlMap && mlMap.loaded()) {
+        clearInterval(checkLoaded);
+        mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: 4, duration: 1500 });
+        updateRouteLines();
+      }
+    }, 200);
+  } else if (fl) {
     mlMap.flyTo({ center: [fl.lon, fl.lat], zoom: Math.max(mlMap.getZoom(), 3), duration: 1500 });
   }
 }
