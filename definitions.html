@@ -120,6 +120,47 @@
     renderDefs();
 
     document.getElementById('defsSearch').addEventListener('input', (e) => renderDefs(e.target.value));
+
+    // Check URL hash for a specific term to highlight
+    function highlightTermFromHash() {
+      const hash = decodeURIComponent(window.location.hash.substring(1));
+      if (!hash) return;
+      // Search for the term
+      const searchInput = document.getElementById('defsSearch');
+      if (searchInput) {
+        searchInput.value = hash;
+        renderDefs(hash);
+      }
+      // Wait for render, then find and highlight the matching item
+      setTimeout(() => {
+        const items = document.querySelectorAll('.def-item');
+        let found = null;
+        items.forEach(item => {
+          const termEl = item.querySelector('.def-term');
+          if (termEl && termEl.textContent.toLowerCase().includes(hash.toLowerCase())) {
+            found = item;
+          }
+        });
+        if (found) {
+          // Highlight with yellow border
+          found.style.border = '2px solid #ffcc00';
+          found.style.boxShadow = '0 0 20px rgba(255,204,0,0.3)';
+          found.style.background = 'rgba(255,204,0,0.05)';
+          // Scroll to it
+          found.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Remove highlight after 5 seconds
+          setTimeout(() => {
+            found.style.border = '';
+            found.style.boxShadow = '';
+            found.style.background = '';
+          }, 5000);
+        }
+      }, 300);
+    }
+    // Run on page load
+    highlightTermFromHash();
+    // Also run when hash changes (if user clicks another define link)
+    window.addEventListener('hashchange', highlightTermFromHash);
   </script>
 </body>
 </html>
