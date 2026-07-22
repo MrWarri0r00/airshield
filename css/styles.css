@@ -328,6 +328,8 @@ button { font-family: inherit; cursor: pointer; }
 #globeCanvas { width: 100%; height: 100%; display: block; cursor: grab; }
 #maplibreGlobe { width: 100%; height: 100%; }
 #maplibreGlobe canvas { display: block; }
+.maplibregl-popup-content { background: transparent !important; padding: 0 !important; box-shadow: none !important; }
+.maplibregl-popup-tip { display: none !important; }
 .globe-info { position: absolute; top: 16px; right: 16px; width: 260px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; backdrop-filter: blur(12px); }
 .gi-head { font-size: 10px; letter-spacing: 2px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; margin-bottom: 8px; }
 .gi-empty { font-size: 13px; color: var(--text-dim); }
