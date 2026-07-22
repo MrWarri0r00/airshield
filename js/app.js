@@ -494,22 +494,34 @@ if (searchInput) {
     // Filter fleet grid
     const f = currentSearch.toUpperCase();
     document.querySelectorAll('.fleet-card').forEach((card) => {
-      const id = card.querySelector('.fleet-id').textContent.toUpperCase();
-      const route = card.querySelector('.fleet-route').textContent.toUpperCase();
-      card.style.display = (!f || id.includes(f) || route.includes(f)) ? '' : 'none';
+      const id = card.querySelector('.fleet-id')?.textContent.toUpperCase();
+      const route = card.querySelector('.fleet-route')?.textContent.toUpperCase();
+      card.style.display = (!f || (id && id.includes(f)) || (route && route.includes(f))) ? '' : 'none';
     });
     // Highlight matching planes on the globe
     if (f) {
+      let matchCount = 0;
       FLIGHTS.forEach((fl) => {
         const match = fl.id.toUpperCase().includes(f) || fl.from.toUpperCase().includes(f) || fl.to.toUpperCase().includes(f) || fl.type.toUpperCase().includes(f);
         fl.searchMatch = match;
+        if (match) matchCount++;
       });
-      // Auto-switch to Registry tab so user can see results
-      if (currentSearch.length >= 2) {
-        activatePanel('registry');
+      // Show a small results toast
+      let toast = document.getElementById('searchToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'searchToast';
+        toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:10px 20px;color:var(--text);font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);transition:opacity 0.3s;';
+        document.body.appendChild(toast);
       }
+      toast.textContent = matchCount + ' aircraft match "' + currentSearch + '" — check Flight Registry or Live Globe';
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
     } else {
       FLIGHTS.forEach((fl) => { fl.searchMatch = false; });
+      const toast = document.getElementById('searchToast');
+      if (toast) toast.style.opacity = '0';
     }
   });
 }
