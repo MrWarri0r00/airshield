@@ -823,7 +823,7 @@ function initMapLibre() {
       }
     });
 
-    // Click handler — opens entity graph panel
+    // Click handler
     mlMap.on('click', 'aircraft', (e) => {
       const f = e.features[0];
       const fl = FLIGHTS.find(x => x.id === f.properties.id);
@@ -831,7 +831,6 @@ function initMapLibre() {
         selectedFlight = fl;
         updateGlobeInfo(fl);
         updateRouteLines();
-        openEntityGraph(fl);
       }
     });
 
@@ -956,112 +955,8 @@ const view3DBtn = document.getElementById('view3D');
 const view2DBtn = document.getElementById('view2D');
 const viewDarkBtn = document.getElementById('viewDark');
 const viewSatBtn = document.getElementById('viewSat');
-let currentStyle = 'dark';
-
-// Function to re-add all layers after a style change
-function reAddAllLayers() {
-  if (!mlMap) return;
-  // Re-add plane icons
-  addPlaneIcons();
-  // Re-add sources
-  mlMap.addSource('flights', {
-    type: 'geojson',
-    data: { type: 'FeatureCollection', features: FLIGHTS.map(fl => ({
-      type: 'Feature', geometry: { type: 'Point', coordinates: [fl.lon, fl.lat] },
-      properties: { id: fl.id, from: fl.from, to: fl.to, type: fl.type, alt: fl.alt, spd: fl.spd, heading: fl.heading, score: fl.score, status: fl.status, threat: fl.threat, qkd: fl.qkd, searchMatch: fl.searchMatch || false }
-    }))}
-  });
-  // Airports
-  const airportFeatures = [];
-  const drawnAirports = new Set();
-  FLIGHTS.forEach(fl => {
-    [fl.from, fl.to].forEach(code => {
-      if (drawnAirports.has(code)) return;
-      drawnAirports.add(code);
-      const coords = AIRPORTS[code];
-      if (coords) airportFeatures.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [coords[1], coords[0]] }, properties: { code } });
-    });
-  });
-  mlMap.addSource('airports', { type: 'geojson', data: { type: 'FeatureCollection', features: airportFeatures } });
-  // Trails
-  mlMap.addSource('trails', { type: 'geojson', data: { type: 'FeatureCollection', features: FLIGHTS.filter(fl => fl.trail && fl.trail.length > 1).map(fl => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: fl.trail.map(t => [t[1], t[0]]) }, properties: { id: fl.id } })) } });
-  // Route lines
-  mlMap.addSource('route-lines', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-  // Layers
-  addAllMapLayers();
-}
-
-function addPlaneIcons() {
-  // Red plane
-  const pc = document.createElement('canvas'); pc.width = 32; pc.height = 32;
-  const pctx = pc.getContext('2d');
-  pctx.fillStyle = '#ff3131';
-  pctx.beginPath();
-  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
-  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
-  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
-  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
-  pctx.closePath(); pctx.fill();
-  if (!mlMap.hasImage('plane-red')) mlMap.addImage('plane-red', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
-  // Threat
-  pctx.clearRect(0, 0, 32, 32); pctx.fillStyle = '#660018';
-  pctx.beginPath();
-  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
-  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
-  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
-  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
-  pctx.closePath(); pctx.fill();
-  if (!mlMap.hasImage('plane-threat')) mlMap.addImage('plane-threat', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
-  // Search
-  pctx.clearRect(0, 0, 32, 32); pctx.fillStyle = '#ffcc00';
-  pctx.beginPath();
-  pctx.moveTo(16, 2); pctx.lineTo(19, 14); pctx.lineTo(30, 18); pctx.lineTo(30, 21);
-  pctx.lineTo(19, 20); pctx.lineTo(20, 26); pctx.lineTo(25, 30); pctx.lineTo(25, 31);
-  pctx.lineTo(16, 29); pctx.lineTo(7, 31); pctx.lineTo(7, 30); pctx.lineTo(12, 26);
-  pctx.lineTo(13, 20); pctx.lineTo(2, 21); pctx.lineTo(2, 18); pctx.lineTo(13, 14);
-  pctx.closePath(); pctx.fill();
-  if (!mlMap.hasImage('plane-search')) mlMap.addImage('plane-search', { width: 32, height: 32, data: new Uint8Array(pctx.getImageData(0, 0, 32, 32).data) });
-  // Airport
-  const ac = document.createElement('canvas'); ac.width = 16; ac.height = 16;
-  const actx = ac.getContext('2d');
-  actx.fillStyle = '#78c8ff'; actx.beginPath(); actx.arc(8, 8, 5, 0, Math.PI * 2); actx.fill();
-  actx.strokeStyle = '#78c8ff'; actx.lineWidth = 1; actx.beginPath(); actx.arc(8, 8, 7, 0, Math.PI * 2); actx.stroke();
-  if (!mlMap.hasImage('airport')) mlMap.addImage('airport', { width: 16, height: 16, data: new Uint8Array(actx.getImageData(0, 0, 16, 16).data) });
-}
-
-function addAllMapLayers() {
-  // Airport labels
-  mlMap.addLayer({ id: 'airport-labels', type: 'symbol', source: 'airports', layout: { 'icon-image': 'airport', 'icon-size': 0.8, 'text-field': ['get','code'], 'text-font': ['Open Sans Semibold'], 'text-size': 10, 'text-offset': [0,-1.5], 'text-anchor': 'bottom' }, paint: { 'text-color': '#78c8ff', 'text-halo-color': '#000', 'text-halo-width': 1 } });
-  // Trails
-  mlMap.addLayer({ id: 'trail-lines', type: 'line', source: 'trails', paint: { 'line-color': '#ff3131', 'line-width': 1.5, 'line-opacity': 0.4 } });
-  // Route lines
-  mlMap.addLayer({ id: 'route-line-layer', type: 'line', source: 'route-lines', paint: { 'line-color': '#ffcc00', 'line-width': 1.5, 'line-opacity': 0.5, 'line-dasharray': [2,2] } });
-  // Aircraft
-  mlMap.addLayer({ id: 'aircraft', type: 'symbol', source: 'flights', layout: { 'icon-image': ['case',['==',['get','searchMatch'],true],'plane-search',['get','threat'],'plane-threat','plane-red'], 'icon-size': 0.7, 'icon-rotate': ['get','heading'], 'icon-rotation-alignment': 'map', 'icon-allow-overlap': true }, paint: { 'icon-opacity': 0.9 } });
-  // Re-attach click + hover handlers
-  mlMap.on('click', 'aircraft', (e) => {
-    const f = e.features[0]; const fl = FLIGHTS.find(x => x.id === f.properties.id);
-    if (fl) { selectedFlight = fl; updateGlobeInfo(fl); updateRouteLines(); openEntityGraph(fl); }
-  });
-  mlMap.on('mouseenter', 'aircraft', () => { mlMap.getCanvas().style.cursor = 'pointer'; });
-  mlMap.on('mouseleave', 'aircraft', () => { mlMap.getCanvas().style.cursor = ''; });
-  const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 15 });
-  mlMap.on('mouseenter', 'aircraft', (e) => {
-    const f = e.features[0]; const coords = f.geometry.coordinates.slice();
-    const html = `<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;background:transparent;padding:8px 12px;border:1px solid #cc0001;border-radius:6px;min-width:160px;">
-      <div style="color:#ff3131;font-weight:700;font-size:12px;margin-bottom:4px;">${f.properties.id}</div>
-      <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.from} → ${f.properties.to}</div>
-      <div style="color:#8a96b4;font-size:10px;margin-bottom:2px;">${f.properties.type}</div>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <span style="color:#00e5ff;">${Math.round(f.properties.alt).toLocaleString()}ft</span>
-        <span style="color:#e8e8f0;">${f.properties.spd}kt</span>
-        <span style="color:#e8e8f0;">${Math.round(f.properties.heading)}°</span>
-      </div>
-    </div>`;
-    popup.setLngLat(coords).setHTML(html).addTo(mlMap);
-  });
-  mlMap.on('mouseleave', 'aircraft', () => popup.remove());
-}
+let satLayerAdded = false;
+let satVisible = false;
 
 view3DBtn?.addEventListener('click', () => {
   if (!mlMap) return;
@@ -1073,139 +968,46 @@ view2DBtn?.addEventListener('click', () => {
   view2DBtn.classList.add('active'); view3DBtn.classList.remove('active');
   mlMap.setProjection({ type: 'mercator' });
 });
+
 viewDarkBtn?.addEventListener('click', () => {
   if (!mlMap) return;
   viewDarkBtn.classList.add('active'); viewSatBtn.classList.remove('active');
-  currentStyle = 'dark';
-  mlMap.setStyle('https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json');
+  if (satVisible && mlMap.getLayer('satellite-overlay')) {
+    mlMap.setLayoutProperty('satellite-overlay', 'visibility', 'none');
+    satVisible = false;
+  }
 });
+
 viewSatBtn?.addEventListener('click', () => {
   if (!mlMap) return;
   viewSatBtn.classList.add('active'); viewDarkBtn.classList.remove('active');
-  currentStyle = 'sat';
-  mlMap.setStyle('https://basemaps.cartocdn.com/gl/satellite-gl-style/style.json');
+  // Add satellite layer on top of existing map (don't swap styles)
+  if (!satLayerAdded) {
+    mlMap.addSource('satellite-tiles', {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 19,
+    });
+    // Insert satellite layer BELOW the plane/airport layers
+    const firstSymbolLayer = mlMap.getLayer('airport-labels') ? 'airport-labels' : null;
+    if (firstSymbolLayer) {
+      mlMap.addLayer({
+        id: 'satellite-overlay',
+        type: 'raster',
+        source: 'satellite-tiles',
+        paint: { 'raster-opacity': 0.85 },
+      }, firstSymbolLayer);
+    } else {
+      mlMap.addLayer({ id: 'satellite-overlay', type: 'raster', source: 'satellite-tiles', paint: { 'raster-opacity': 0.85 } });
+    }
+    satLayerAdded = true;
+  }
+  if (mlMap.getLayer('satellite-overlay')) {
+    mlMap.setLayoutProperty('satellite-overlay', 'visibility', 'visible');
+  }
+  satVisible = true;
 });
-// Re-add layers after style change
-mlMap?.on('style.load', () => {
-  addPlaneIcons();
-  reAddAllLayers();
-  if (currentStyle === 'dark') {
-    try { mlMap.setSky({ 'sky-color': '#04040A', 'sky-horizon-blend': 0.5, 'horizon-color': '#0a0a1a', 'horizon-fog-blend': 0.3, 'fog-color': '#04040A', 'fog-ground-blend': 0.9 }); } catch(e) {}
-  }
-});
 
-/* ============================================================ ENTITY GRAPH PANEL */
-const egpPanel = document.getElementById('entityGraphPanel');
-const egpClose = document.getElementById('egpClose');
-const egpInfo = document.getElementById('egpInfo');
-const egpCanvas = document.getElementById('entityGraphCanvas');
-
-egpClose?.addEventListener('click', () => egpPanel.classList.remove('open'));
-
-function openEntityGraph(fl) {
-  if (!egpPanel) return;
-  egpPanel.classList.add('open');
-  if (egpInfo) egpInfo.innerHTML = `<strong style="color:var(--accent)">${fl.id}</strong> · ${fl.from} → ${fl.to} · ${fl.type}`;
-
-  // Build entity graph: aircraft → airline → airports → countries → threats
-  const nodes = [
-    { id: fl.id, label: fl.id, type: 'aircraft', x: 180, y: 200 },
-    { id: 'from-' + fl.from, label: fl.from, type: 'airport', x: 80, y: 100 },
-    { id: 'to-' + fl.to, label: fl.to, type: 'airport', x: 280, y: 100 },
-    { id: 'airline', label: 'RTX Defense', type: 'company', x: 180, y: 80 },
-    { id: 'country-from', label: fl.from + ' Region', type: 'country', x: 50, y: 300 },
-    { id: 'country-to', label: fl.to + ' Region', type: 'country', x: 310, y: 300 },
-    { id: 'qkd', label: 'QKD Link', type: 'system', x: 100, y: 200 },
-    { id: 'qsvm', label: 'QSVM Firewall', type: 'system', x: 260, y: 200 },
-  ];
-  if (fl.threat) {
-    nodes.push({ id: 'threat', label: 'THREAT', type: 'threat', x: 180, y: 320 });
-  }
-  const links = [
-    { source: fl.id, target: 'from-' + fl.from, label: 'departs' },
-    { source: fl.id, target: 'to-' + fl.to, label: 'arrives' },
-    { source: fl.id, target: 'airline', label: 'operated by' },
-    { source: 'from-' + fl.from, target: 'country-from', label: 'located in' },
-    { source: 'to-' + fl.to, target: 'country-to', label: 'located in' },
-    { source: fl.id, target: 'qkd', label: 'protected by' },
-    { source: fl.id, target: 'qsvm', label: 'monitored by' },
-  ];
-  if (fl.threat) {
-    links.push({ source: fl.id, target: 'threat', label: 'UNDER ATTACK' });
-  }
-
-  drawEntityGraph(nodes, links);
-}
-
-function drawEntityGraph(nodes, links) {
-  if (!egpCanvas) return;
-  const ctx = egpCanvas.getContext('2d');
-  const W = egpCanvas.width;
-  const H = egpCanvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  const typeColors = {
-    aircraft: '#ff3131', airport: '#78c8ff', company: '#ffcc00',
-    country: '#2ecc71', system: '#00e5ff', threat: '#ff1744',
-  };
-
-  // Animate: simple force simulation
-  let frame = 0;
-  function animate() {
-    ctx.clearRect(0, 0, W, H);
-
-    // Apply slight force: push nodes apart
-    nodes.forEach(n => {
-      nodes.forEach(m => {
-        if (n.id === m.id) return;
-        const dx = n.x - m.x, dy = n.y - m.y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < 80 && d > 0) {
-          const force = (80 - d) * 0.02;
-          n.x += (dx / d) * force; n.y += (dy / d) * force;
-        }
-      });
-      // Keep in bounds
-      n.x = Math.max(30, Math.min(W - 30, n.x));
-      n.y = Math.max(30, Math.min(H - 30, n.y));
-    });
-
-    // Draw links
-    links.forEach(l => {
-      const s = nodes.find(n => n.id === l.source);
-      const t = nodes.find(n => n.id === l.target);
-      if (!s || !t) return;
-      ctx.strokeStyle = l.label === 'UNDER ATTACK' ? '#ff1744' : 'rgba(255,49,49,0.3)';
-      ctx.lineWidth = l.label === 'UNDER ATTACK' ? 2 : 1;
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y); ctx.lineTo(t.x, t.y); ctx.stroke();
-
-      // Link label
-      const mx = (s.x + t.x) / 2, my = (s.y + t.y) / 2;
-      ctx.fillStyle = 'rgba(138,150,180,0.6)';
-      ctx.font = '8px JetBrains Mono';
-      ctx.fillText(l.label, mx - 20, my);
-    });
-
-    // Draw nodes
-    nodes.forEach(n => {
-      const color = typeColors[n.type] || '#888';
-      // glow
-      ctx.shadowColor = color; ctx.shadowBlur = 10;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, n.type === 'aircraft' ? 10 : 7, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-      // label
-      ctx.fillStyle = '#e8e8f0';
-      ctx.font = '10px Inter';
-      ctx.textAlign = 'center';
-      ctx.fillText(n.label, n.x, n.y + 20);
-    });
-
-    frame++;
-    if (frame < 60) requestAnimationFrame(animate);
-  }
-  animate();
-}
+/* ============================================================ RESIZE HANDLER */
+window.addEventListener('resize', () => { if (mlMap) setTimeout(() => mlMap.resize(), 50); });
