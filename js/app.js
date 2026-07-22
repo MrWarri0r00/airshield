@@ -861,44 +861,46 @@ function initMapLibre() {
 
     // Start live movement — realistic flight physics
     // Real planes fly in straight lines along their heading at constant altitude
-    // They don't zigzag. Trail should be a smooth straight line behind them.
     setInterval(() => {
       FLIGHTS.forEach((fl) => {
         if (!fl.fromCoords || !fl.toCoords) return;
         // Move plane based on real speed and heading (no random noise)
-        // Speed in knots → degrees per update (approximate)
-        // 1 knot ≈ 0.00028 degrees per second at equator
         const speedDeg = (fl.spd || 480) * 0.00028 * 2; // 2 seconds per update
         const headingRad = (fl.heading || 0) * Math.PI / 180;
-        // Move in heading direction
         fl.lon += Math.sin(headingRad) * speedDeg;
         fl.lat += Math.cos(headingRad) * speedDeg;
         
-        // Check if plane has flown too far from its route — reset with new route
-        const distFromRoute = Math.sqrt(
-          Math.pow(fl.lat - (fl.fromCoords[0] + fl.toCoords[0]) / 2, 2) +
-          Math.pow(fl.lon - (fl.fromCoords[1] + fl.toCoords[1]) / 2, 2)
+        // Gradually adjust heading toward destination (gentle turn, not instant)
+        if (fl.toCoords) {
+          const targetHeading = Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI;
+          let diff = ((targetHeading - fl.heading + 540) % 360) - 180;
+          fl.heading = (fl.heading + diff * 0.1 + 360) % 360; // gentle 10% turn toward target
+        }
+        
+        // Check if plane is near destination — assign new route
+        const distToDest = Math.sqrt(
+          Math.pow(fl.lat - fl.toCoords[0], 2) +
+          Math.pow(fl.lon - fl.toCoords[1], 2)
         );
-        if (distFromRoute > 60 || fl.progress >= 1) {
-          // Plane has flown far enough — assign new route
-          fl.progress = 0;
+        if (distToDest < 3) {
+          // Arrived — new route from current position
           const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
           fl.from = route[0]; fl.to = route[1];
-          fl.fromCoords = AIRPORTS[route[0]] || [40, -74];
-          fl.toCoords = AIRPORTS[route[1]] || [51, 0];
-          // Reset position to origin airport
-          fl.lat = fl.fromCoords[0] + (Math.random() - 0.5) * 2;
-          fl.lon = fl.fromCoords[1] + (Math.random() - 0.5) * 2;
-          // Set heading toward destination
-          fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
+          fl.fromCoords = [fl.lat, fl.lon]; // start from current position
+          fl.toCoords = AIRPORTS[route[1]] || [40 + Math.random() * 40, -80 + Math.random() * 160];
           fl.trail = [];
         }
+        
+        // Wrap around the globe if plane goes off edge
+        if (fl.lon > 180) fl.lon -= 360;
+        if (fl.lon < -180) fl.lon += 360;
+        if (fl.lat > 85) { fl.lat = 85; fl.heading = (fl.heading + 180) % 360; }
+        if (fl.lat < -85) { fl.lat = -85; fl.heading = (fl.heading + 180) % 360; }
         
         // Update trail — smooth, no noise
         fl.trail.unshift([fl.lat, fl.lon]);
         if (fl.trail.length > 12) fl.trail.pop();
         
-        // If selected flight, update info panel
         if (selectedFlight === fl) updateGlobeInfo(fl);
       });
       // Update map sources
