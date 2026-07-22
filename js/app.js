@@ -3,6 +3,60 @@
    AIR SHIELD — Interactive logic v2
    ============================================================ */
 
+/* ---------- LOADER ---------- */
+window.addEventListener('load', () => {
+  const loader = document.getElementById('loader');
+  const fill = document.getElementById('loaderFill');
+  setTimeout(() => { if (fill) fill.style.width = '100%'; }, 100);
+  setTimeout(() => { if (loader) loader.classList.add('hidden'); }, 1800);
+});
+
+/* ---------- SCROLL PROGRESS + NAV ---------- */
+const progressBar = document.getElementById('scrollProgress');
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = (scrolled / max) * 100;
+  if (progressBar) progressBar.style.width = pct + '%';
+  if (navEl) { if (scrolled > 50) navEl.style.borderBottomColor = 'var(--border)'; else navEl.style.borderBottomColor = 'transparent'; }
+});
+
+/* ---------- REVEAL ON SCROLL ---------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('revealed');
+      revealObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+document.querySelectorAll('[data-reveal], [data-reveal-stagger]').forEach(el => revealObserver.observe(el));
+
+/* ---------- MAGNETIC BUTTONS ---------- */
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
+  });
+  btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
+});
+
+/* ---------- RIPPLE EFFECT ---------- */
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    ripple.style.left = (e.clientX - rect.left) + 'px';
+    ripple.style.top = (e.clientY - rect.top) + 'px';
+    btn.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
+
 /* ---------- THEME ---------- */
 const themeToggle = document.getElementById('themeToggle');
 const root = document.documentElement;

@@ -12,6 +12,19 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+  <!-- Loading screen -->
+  <div class="loader" id="loader">
+    <div class="loader-shards">
+      <div class="shard s0"></div><div class="shard s1"></div><div class="shard s2"></div>
+      <div class="shard s3"></div><div class="shard s4"></div><div class="shard s5"></div>
+    </div>
+    <div class="loader-text">AIR SHIELD</div>
+    <div class="loader-bar"><div class="loader-bar-fill" id="loaderFill"></div></div>
+  </div>
+
+  <!-- Scroll progress bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
   <!-- NAV -->
   <header class="nav" id="nav">
     <div class="nav-inner">
@@ -75,7 +88,7 @@
 
   <!-- THREAT -->
   <section class="section" id="threat">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div class="section-tag">01 · THE PROBLEM</div>
       <h2>Your encrypted data is <span class="accent">already stolen</span>.</h2>
       <p class="section-lead">
@@ -105,7 +118,7 @@
         <div class="node-card shield"><h4>The Air Shield Standard</h4><p>The entire RTX fleet operates on quantum-native zero-trust: QRNG · QKD · QSVM. Yesterday's intercepted traffic is still useless.</p></div>
       </div>
     </div>
-    <div class="threat-grid">
+    <div class="threat-grid" data-reveal-stagger>
       <div class="threat-card"><div class="threat-icon">⚠</div><h3>Shor's Algorithm</h3><p>Breaks RSA and ECC (the public-key math that protects every modern handshake) once a large enough quantum machine exists.</p></div>
       <div class="threat-card"><div class="threat-icon">↓</div><h3>Grover's Algorithm</h3><p>Weakens symmetric encryption. AES-256 effectively becomes AES-128. Still hard, but no longer "mathematically impossible."</p></div>
       <div class="threat-card"><div class="threat-icon">⌛</div><h3>Harvest Now, Decrypt Later</h3><p>Cybercriminals store encrypted traffic today to decrypt retroactively.</p></div>
@@ -115,14 +128,14 @@
 
   <!-- SOLUTION -->
   <section class="section alt" id="solution">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div class="section-tag">02 · THE ANSWER</div>
       <h2>Fight a <span class="accent">quantum threat</span> with a <span class="accent">quantum defense</span>.</h2>
       <p class="section-lead">
         Air Shield is a three-layer Quantum Zero-Trust architecture purpose-built for the aircraft of 2050. Each layer addresses a specific failure mode of classical cybersecurity and together they form a physically unbreakable barrier between a cybercriminal and your flight systems.
       </p>
     </div>
-    <div class="layer-stack">
+    <div class="layer-stack" data-reveal-stagger>
       <div class="layer">
         <div class="layer-num">L1</div>
         <div class="layer-body">
@@ -149,7 +162,7 @@
 
   <!-- ARCHITECTURE -->
   <section class="section" id="architecture">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div class="section-tag">03 · ARCHITECTURE</div>
       <h2>Inside <span class="accent">Air Shield</span></h2>
       <p class="section-lead">A retrofit-ready module that brings legacy avionics up to a quantum-native security posture without replacing the aircraft.</p>
@@ -178,7 +191,7 @@
         </div>
       </div>
     </div>
-    <div class="arch-features">
+    <div class="arch-features" data-reveal-stagger>
       <div class="feat"><h4>Cold-Atom Navigation</h4><p>Quantum inertial sensors measure acceleration with atomic precision. Aircraft navigate globally for months without GPS, neutralizing spoofing and jamming forever.</p></div>
       <div class="feat"><h4>Tamper-Evident Flight Log</h4><p>Every flight data record is committed via QKD to ground as it happens. Any post-hoc tampering with the black box physically breaks the quantum hash</p></div>
       <div class="feat"><h4>Cryptographic Agility Score</h4><p>A live 0–100 metric showing how quantum-ready each aircraft's crypto stack is. Executives get a single number to track fleet readiness across the entire RTX portfolio.</p></div>
@@ -188,7 +201,7 @@
 
   <!-- DEMO CTA -->
   <section class="section alt" id="dashboard">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div class="section-tag">04 · LIVE DEMO</div>
       <h2>Air Shield <span class="accent">Command Console</span></h2>
       <p class="section-lead">
@@ -212,11 +225,11 @@
 
   <!-- ROADMAP -->
   <section class="section" id="roadmap">
-    <div class="section-head">
+    <div class="section-head" data-reveal>
       <div class="section-tag">05 · ROADMAP</div>
       <h2>From <span class="accent">2026</span> to <span class="accent">2050</span></h2>
     </div>
-    <div class="roadmap">
+    <div class="roadmap" data-reveal-stagger>
       <div class="road-item"><div class="road-year">2026</div><h4>Concept &amp; Prototype</h4><p>PQC migration inventory. ML-KEM / ML-DSA pilots. SNDL advisory published. Air Shield architecture drafted.</p></div>
       <div class="road-item"><div class="road-year">2029</div><h4>Hardware Anchor</h4><p>Microsoft Majorana 2 ships. First QKD satellite-to-aircraft links. Air Shield retrofit module fielded on RTX platforms.</p></div>
       <div class="road-item"><div class="road-year">2035</div><h4>Q-Day Preparedness</h4><p>Fleet-wide PQC migration complete. QSVM firewalls standard. Cold-atom nav deployed on all new airframes.</p></div>
