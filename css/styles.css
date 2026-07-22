@@ -359,7 +359,12 @@ button { font-family: inherit; cursor: pointer; }
 .feed { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 6px; }
 .feed::-webkit-scrollbar { width: 6px; }
 .feed::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
-.feed-item { display: grid; grid-template-columns: 88px 60px 1fr auto; gap: 14px; align-items: center; background: var(--panel-2); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 13px; animation: slideIn 0.4s ease; }
+.feed-item { display: grid; grid-template-columns: 88px 60px 1fr auto auto; gap: 14px; align-items: center; background: var(--panel-2); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 8px; padding: 12px 16px; font-size: 13px; animation: slideIn 0.4s ease; }
+.feed-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.feed-action { padding: 4px 10px; background: var(--accent-soft); border: 1px solid var(--red); border-radius: 6px; color: var(--accent); font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; white-space: nowrap; }
+.feed-action:hover { background: var(--red); color: #fff; box-shadow: 0 0 8px var(--red-glow); }
+.feed-action:disabled { cursor: default; }
+@keyframes toastSlide { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes slideIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
 .feed-item.critical { border-left-color: var(--red-bright); }
 .feed-item.high { border-left-color: var(--warn); }

@@ -187,16 +187,46 @@ document.querySelectorAll('.sb-dd-item').forEach((item) => {
 
 /* ---------- LIVE THREAT FEED ---------- */
 const THREAT_TEMPLATES = [
-  { sev: 'critical', msg: 'SNDL intercept detected on <b>downlink channel 7</b>', src: 'QSVM-01' },
-  { sev: 'critical', msg: 'QGAN-morphed malware signature on <b>avionics bus</b>', src: 'QSVM-02' },
-  { sev: 'high', msg: 'GPS spoof attempt neutralized — <b>Q-INS override</b>', src: 'NAV-CORE' },
-  { sev: 'high', msg: 'Anomalous handshake probe from <b>unregistered tower</b>', src: 'PQC-GW' },
-  { sev: 'info', msg: 'Quantum key rotation complete — <b>key ID refreshed</b>', src: 'QRNG-04' },
-  { sev: 'info', msg: 'Tamper-evident log sealed — block <b>#4421-A</b>', src: 'QKD-RELAY' },
-  { sev: 'critical', msg: 'Classical RSA handshake <b>blocked</b> — legacy fallback denied', src: 'PQC-GW' },
-  { sev: 'high', msg: 'Deepfake voice impersonation flagged on ATC channel', src: 'AI-IDS' },
-  { sev: 'info', msg: 'Cryptographic Agility Score updated: <b>94/100</b>', src: 'FLEET-OPS' },
-  { sev: 'high', msg: 'Supply-chain firmware signature mismatch — <b>quarantined</b>', src: 'SB-SCAN' },
+  { sev: 'critical', msg: 'SNDL intercept detected on <b>downlink channel 7</b>', src: 'QSVM-01', actions: [
+    { label: 'Rotate QKD Keys', desc: 'Generate fresh quantum keys to replace intercepted channel' },
+    { label: 'Isolate Channel', desc: 'Disable channel 7 and reroute traffic' },
+  ]},
+  { sev: 'critical', msg: 'QGAN-morphed malware signature on <b>avionics bus</b>', src: 'QSVM-02', actions: [
+    { label: 'Quarantine Subsystem', desc: 'Isolate affected avionics bus segment' },
+    { label: 'Deploy QSVM Counter', desc: 'Launch quantum detection sweep on avionics bus' },
+    { label: 'Reboot FMS', desc: 'Restart flight management system from clean state' },
+  ]},
+  { sev: 'high', msg: 'GPS spoof attempt neutralized — <b>Q-INS override</b>', src: 'NAV-CORE', actions: [
+    { label: 'Switch to Q-INS', desc: 'Activate cold-atom quantum navigation (no GPS needed)' },
+    { label: 'Alert ATC', desc: 'Notify air traffic control of GPS anomaly' },
+  ]},
+  { sev: 'high', msg: 'Anomalous handshake probe from <b>unregistered tower</b>', src: 'PQC-GW', actions: [
+    { label: 'Block Tower', desc: 'Blacklist the unregistered ground station' },
+    { label: 'Require PQC Auth', desc: 'Force ML-DSA signature verification for this connection' },
+  ]},
+  { sev: 'info', msg: 'Quantum key rotation complete — <b>key ID refreshed</b>', src: 'QRNG-04', actions: [
+    { label: 'View Key Log', desc: 'Open quantum key vault to verify rotation' },
+  ]},
+  { sev: 'info', msg: 'Tamper-evident log sealed — block <b>#4421-A</b>', src: 'QKD-RELAY', actions: [
+    { label: 'Verify Chain', desc: 'Check the QKD hash chain integrity' },
+  ]},
+  { sev: 'critical', msg: 'Classical RSA handshake <b>blocked</b> — legacy fallback denied', src: 'PQC-GW', actions: [
+    { label: 'Force PQC Handshake', desc: 'Require ML-KEM key exchange for this endpoint' },
+    { label: 'Block Endpoint', desc: 'Add to quarantine list — RSA not permitted' },
+  ]},
+  { sev: 'high', msg: 'Deepfake voice impersonation flagged on ATC channel', src: 'AI-IDS', actions: [
+    { label: 'Require Biometric Auth', desc: 'Force multi-modal voice + cardiac verification' },
+    { label: 'Switch to Encrypted ATC', desc: 'Move to PQC-encrypted voice channel' },
+    { label: 'Alert ATC', desc: 'Notify tower of potential impersonation' },
+  ]},
+  { sev: 'info', msg: 'Cryptographic Agility Score updated: <b>94/100</b>', src: 'FLEET-OPS', actions: [
+    { label: 'View Breakdown', desc: 'Open crypto agility panel for fleet details' },
+  ]},
+  { sev: 'high', msg: 'Supply-chain firmware signature mismatch — <b>quarantined</b>', src: 'SB-SCAN', actions: [
+    { label: 'Verify Signature', desc: 'Check firmware against PQC signature database' },
+    { label: 'Rollback Firmware', desc: 'Restore previous certified firmware version' },
+    { label: 'Quarantine Device', desc: 'Isolate the device until verified' },
+  ]},
 ];
 const feedEl = document.getElementById('threatFeed');
 const threatCountEl = document.getElementById('threatCount');
@@ -209,10 +239,31 @@ function addFeedItem(initial = false) {
   const sevLabel = t.sev.toUpperCase();
   const row = document.createElement('div');
   row.className = 'feed-item ' + t.sev;
-  row.innerHTML = `<span class="feed-time">${time}</span><span class="feed-sev ${t.sev}">${sevLabel}</span><span class="feed-msg">${t.msg}</span><span class="feed-src">${t.src}</span>`;
+  // Build action buttons
+  const actionsHtml = (t.actions || []).map((a, i) => `<button class="feed-action" data-action="${i}">${a.label}</button>`).join('');
+  row.innerHTML = `<span class="feed-time">${time}</span><span class="feed-sev ${t.sev}">${sevLabel}</span><span class="feed-msg">${t.msg}</span><span class="feed-src">${t.src}</span><div class="feed-actions">${actionsHtml}</div>`;
   // Apply current filter
   if (feedFilter !== 'all' && t.sev !== feedFilter) row.style.display = 'none';
   if (feedEl) { feedEl.prepend(row); while (feedEl.children.length > 24) feedEl.removeChild(feedEl.lastChild); }
+  // Wire up action buttons
+  row.querySelectorAll('.feed-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.action);
+      const action = t.actions[idx];
+      // Show confirmation toast
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--accent);border-radius:10px;padding:14px 20px;color:var(--text);font-size:13px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-width:360px;animation:toastSlide 0.3s ease;';
+      toast.innerHTML = `<div style="color:var(--accent);font-weight:700;margin-bottom:4px;font-size:11px;letter-spacing:1px;">ACTION EXECUTED</div><div style="font-weight:600;margin-bottom:4px;">${action.label}</div><div style="color:var(--text-dim);font-size:12px;">${action.desc}</div>`;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+      // Mark the feed item as resolved
+      row.style.opacity = '0.4';
+      row.style.borderLeftColor = 'var(--ok)';
+      btn.textContent = '✓ Done';
+      btn.disabled = true;
+      btn.style.opacity = '0.5';
+    });
+  });
   if (t.sev !== 'info') { threatCount++; if (threatCountEl) threatCountEl.textContent = threatCount; }
 }
 // Feed filter — must be declared before addFeedItem uses it
