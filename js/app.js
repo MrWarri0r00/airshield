@@ -451,7 +451,7 @@ fetchRealFlights().then(() => {
 
 const fleetEl = document.getElementById('fleetGrid');
 if (fleetEl) {
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 48; i++) {
     const f = FLIGHTS[i];
     const div = document.createElement('div');
     div.className = 'fleet-card';
@@ -622,7 +622,7 @@ function initMapLibre() {
   // Animate the aircraft count from 0 to 247
   const globeCountEl = document.getElementById('globeCount');
   if (globeCountEl) {
-    countUp(globeCountEl, 247, 2000);
+    countUp(globeCountEl, 200, 2000);
   }
 
   mlMap = new maplibregl.Map({
@@ -859,24 +859,46 @@ function initMapLibre() {
 
     // No auto-rotate — globe only moves when user interacts
 
-    // Start live movement
+    // Start live movement — realistic flight physics
+    // Real planes fly in straight lines along their heading at constant altitude
+    // They don't zigzag. Trail should be a smooth straight line behind them.
     setInterval(() => {
       FLIGHTS.forEach((fl) => {
         if (!fl.fromCoords || !fl.toCoords) return;
-        fl.progress += 0.008;
-        if (fl.progress >= 1) {
+        // Move plane based on real speed and heading (no random noise)
+        // Speed in knots → degrees per update (approximate)
+        // 1 knot ≈ 0.00028 degrees per second at equator
+        const speedDeg = (fl.spd || 480) * 0.00028 * 2; // 2 seconds per update
+        const headingRad = (fl.heading || 0) * Math.PI / 180;
+        // Move in heading direction
+        fl.lon += Math.sin(headingRad) * speedDeg;
+        fl.lat += Math.cos(headingRad) * speedDeg;
+        
+        // Check if plane has flown too far from its route — reset with new route
+        const distFromRoute = Math.sqrt(
+          Math.pow(fl.lat - (fl.fromCoords[0] + fl.toCoords[0]) / 2, 2) +
+          Math.pow(fl.lon - (fl.fromCoords[1] + fl.toCoords[1]) / 2, 2)
+        );
+        if (distFromRoute > 60 || fl.progress >= 1) {
+          // Plane has flown far enough — assign new route
           fl.progress = 0;
           const route = ROUTES[Math.floor(Math.random() * ROUTES.length)];
           fl.from = route[0]; fl.to = route[1];
           fl.fromCoords = AIRPORTS[route[0]] || [40, -74];
           fl.toCoords = AIRPORTS[route[1]] || [51, 0];
+          // Reset position to origin airport
+          fl.lat = fl.fromCoords[0] + (Math.random() - 0.5) * 2;
+          fl.lon = fl.fromCoords[1] + (Math.random() - 0.5) * 2;
+          // Set heading toward destination
+          fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
           fl.trail = [];
         }
-        fl.lat = fl.fromCoords[0] + (fl.toCoords[0] - fl.fromCoords[0]) * fl.progress + (Math.random() - 0.5) * 4;
-        fl.lon = fl.fromCoords[1] + (fl.toCoords[1] - fl.fromCoords[1]) * fl.progress + (Math.random() - 0.5) * 4;
-        fl.heading = Math.floor(Math.atan2(fl.toCoords[1] - fl.lon, fl.toCoords[0] - fl.lat) * 180 / Math.PI + 360) % 360;
+        
+        // Update trail — smooth, no noise
         fl.trail.unshift([fl.lat, fl.lon]);
-        if (fl.trail.length > 8) fl.trail.pop();
+        if (fl.trail.length > 12) fl.trail.pop();
+        
+        // If selected flight, update info panel
         if (selectedFlight === fl) updateGlobeInfo(fl);
       });
       // Update map sources
