@@ -3,12 +3,19 @@
    AIR SHIELD — Interactive logic v2
    ============================================================ */
 
-/* ---------- LOADER ---------- */
+/* ---------- LOADER (session-based: only shows on first visit per tab) ---------- */
 window.addEventListener('load', () => {
   const loader = document.getElementById('loader');
   const fill = document.getElementById('loaderFill');
-  setTimeout(() => { if (fill) fill.style.width = '100%'; }, 100);
-  setTimeout(() => { if (loader) loader.classList.add('hidden'); }, 1800);
+  // Only show loader if this is the first page load in this tab session
+  if (!sessionStorage.getItem('airshield-loaded')) {
+    sessionStorage.setItem('airshield-loaded', 'true');
+    setTimeout(() => { if (fill) fill.style.width = '100%'; }, 100);
+    setTimeout(() => { if (loader) loader.classList.add('hidden'); }, 1800);
+  } else {
+    // Already loaded in this session — skip loader instantly
+    if (loader) loader.classList.add('hidden');
+  }
 });
 
 /* ---------- SCROLL PROGRESS + NAV ---------- */

@@ -10,10 +10,13 @@
   <link rel="stylesheet" href="css/styles.css" />
   <style>
     body { overflow-y: auto; }
-    .defs-page { max-width: 900px; margin: 0 auto; padding: 100px 28px 60px; }
-    .defs-head { margin-bottom: 48px; }
-    .defs-head h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
-    .defs-head p { color: var(--text-dim); font-size: 16px; }
+    .defs-page { max-width: 900px; margin: 0 auto; padding: 100px 28px 60px; animation: pageFadeIn 0.6s ease; }
+    @keyframes pageFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .defs-head { margin-bottom: 48px; animation: defsFadeUp 0.6s 0.1s ease backwards; }
+    @keyframes defsFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .defs-search { margin-bottom: 32px; animation: defsFadeUp 0.6s 0.2s ease backwards; }
+    .def-item { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; transition: all 0.2s; animation: defItemAppear 0.5s ease backwards; }
+    @keyframes defItemAppear { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     .defs-search { margin-bottom: 32px; }
     .defs-search input { width: 100%; padding: 14px 18px; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif; }
     .defs-search input:focus { outline: none; border-color: var(--accent); }
@@ -102,9 +105,10 @@
         defsList.innerHTML = '<div class="defs-empty">No terms match "' + filter + '"</div>';
         return;
       }
-      filtered.forEach(d => {
+      filtered.forEach((d, i) => {
         const div = document.createElement('div');
         div.className = 'def-item';
+        div.style.animationDelay = (i * 0.05) + 's';
         div.innerHTML = `
           <div class="def-term">${d.term}<span class="def-cat ${d.cat}">${d.cat}</span></div>
           <div class="def-def">${d.def}</div>
