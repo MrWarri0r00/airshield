@@ -451,7 +451,7 @@ fetchRealFlights().then(() => {
 
 const fleetEl = document.getElementById('fleetGrid');
 if (fleetEl) {
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < FLIGHTS.length; i++) {
     const f = FLIGHTS[i];
     const div = document.createElement('div');
     div.className = 'fleet-card';
