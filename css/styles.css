@@ -111,6 +111,7 @@ button { font-family: inherit; cursor: pointer; }
 .cursor.hovering { width: 0; height: 0; background: transparent; border: 2px solid var(--red-bright); box-shadow: 0 0 12px var(--red-glow); }
 .cursor.hovering.btn-primary-hover { border-color: #000; background: #fff; width: 6px; height: 6px; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255,255,255,0.6); }
 .cursor-trail.hovering { width: 44px; height: 44px; border-color: var(--red-bright); opacity: 1; }
+.cursor-trail.hovering.btn-primary-hover { border-color: #fff; border-width: 2px; opacity: 1; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
 @media (max-width: 768px) { body { cursor: auto; } .cursor, .cursor-trail { display: none; } }
 
 /* ============================================================ NAV */
