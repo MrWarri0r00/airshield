@@ -29,6 +29,29 @@ window.addEventListener('scroll', () => {
   if (navEl) { if (scrolled > 50) navEl.style.borderBottomColor = 'var(--border)'; else navEl.style.borderBottomColor = 'transparent'; }
 });
 
+/* ---------- CUSTOM CURSOR ---------- */
+const cursor = document.getElementById('cursor');
+const cursorTrail = document.getElementById('cursorTrail');
+let mouseX = 0, mouseY = 0, trailX = 0, trailY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX; mouseY = e.clientY;
+  if (cursor) { cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px'; }
+});
+
+function animateTrail() {
+  trailX += (mouseX - trailX) * 0.15;
+  trailY += (mouseY - trailY) * 0.15;
+  if (cursorTrail) { cursorTrail.style.left = trailX + 'px'; cursorTrail.style.top = trailY + 'px'; }
+  requestAnimationFrame(animateTrail);
+}
+animateTrail();
+
+document.querySelectorAll('a, button, .btn, .threat-card, .layer, .feat, .road-item').forEach(el => {
+  el.addEventListener('mouseenter', () => { cursor?.classList.add('hovering'); cursorTrail?.classList.add('hovering'); });
+  el.addEventListener('mouseleave', () => { cursor?.classList.remove('hovering'); cursorTrail?.classList.remove('hovering'); });
+});
+
 /* ---------- REVEAL ON SCROLL (load + unload) ---------- */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
