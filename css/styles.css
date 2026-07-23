@@ -109,6 +109,7 @@ button { font-family: inherit; cursor: pointer; }
 .cursor { position: fixed; width: 8px; height: 8px; background: var(--red-bright); border-radius: 50%; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s, border 0.2s; }
 .cursor-trail { position: fixed; width: 32px; height: 32px; border: 1px solid var(--red); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: width 0.15s, height 0.15s, border-color 0.15s, opacity 0.3s; opacity: 0.5; }
 .cursor.hovering { width: 0; height: 0; background: transparent; border: 2px solid var(--red-bright); box-shadow: 0 0 12px var(--red-glow); }
+.cursor.hovering.btn-primary-hover { border-color: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.5); }
 .cursor-trail.hovering { width: 44px; height: 44px; border-color: var(--red-bright); opacity: 1; }
 @media (max-width: 768px) { body { cursor: auto; } .cursor, .cursor-trail { display: none; } }
 

@@ -48,8 +48,8 @@ function animateTrail() {
 animateTrail();
 
 document.querySelectorAll('a, button, .btn, .threat-card, .layer, .feat, .road-item').forEach(el => {
-  el.addEventListener('mouseenter', () => { cursor?.classList.add('hovering'); cursorTrail?.classList.add('hovering'); });
-  el.addEventListener('mouseleave', () => { cursor?.classList.remove('hovering'); cursorTrail?.classList.remove('hovering'); });
+  el.addEventListener('mouseenter', () => { cursor?.classList.add('hovering'); cursorTrail?.classList.add('hovering'); if (el.classList.contains('btn-primary')) cursor?.classList.add('btn-primary-hover'); });
+  el.addEventListener('mouseleave', () => { cursor?.classList.remove('hovering'); cursorTrail?.classList.remove('hovering'); cursor?.classList.remove('btn-primary-hover'); });
 });
 
 /* ---------- REVEAL ON SCROLL (load + unload) ---------- */
