@@ -146,13 +146,14 @@ const canvas = document.getElementById('heroCanvas');
 if (canvas) {
   const ctx = canvas.getContext('2d');
   let W, H, particles = [];
+  let particleVisible = true;
   const COLORS = ['#cc0001', '#ff3131', '#7a0000'];
   function resize() { W = canvas.width = canvas.offsetWidth * devicePixelRatio; H = canvas.height = canvas.offsetHeight * devicePixelRatio; }
   resize();
   window.addEventListener('resize', resize);
   function initParticles() {
     particles = [];
-    const count = Math.min(80, Math.floor((W * H) / 30000));
+    const count = Math.min(40, Math.floor((W * H) / 60000));
     for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * W, y: Math.random() * H,
@@ -165,31 +166,41 @@ if (canvas) {
     }
   }
   initParticles();
+  // Stop animation when hero scrolls out of view
+  const heroSection = document.getElementById('top');
+  if (heroSection) {
+    const heroObserver = new IntersectionObserver((entries) => {
+      particleVisible = entries[0].isIntersecting;
+    }, { threshold: 0.05 });
+    heroObserver.observe(heroSection);
+  }
   function draw() {
-    ctx.clearRect(0, 0, W, H);
-    for (let i = 0; i < particles.length; i++) {
-      const p = particles[i];
-      for (let j = i + 1; j < particles.length; j++) {
-        const q = particles[j];
-        const dx = p.x - q.x, dy = p.y - q.y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        const maxD = 120 * devicePixelRatio;
-        if (d < maxD) {
-          ctx.strokeStyle = `rgba(204,0,1,${0.18 * (1 - d / maxD)})`;
-          ctx.lineWidth = 0.5 * devicePixelRatio;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+    if (particleVisible) {
+      ctx.clearRect(0, 0, W, H);
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x, dy = p.y - q.y;
+          const d2 = dx * dx + dy * dy;
+          const maxD = 120 * devicePixelRatio;
+          if (d2 < maxD * maxD) {
+            ctx.strokeStyle = `rgba(204,0,1,${0.18 * (1 - Math.sqrt(d2) / maxD)})`;
+            ctx.lineWidth = 0.5 * devicePixelRatio;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+          }
         }
       }
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1;
+        if (p.y < 0 || p.y > H) p.vy *= -1;
+        ctx.fillStyle = p.c; ctx.globalAlpha = p.a;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
     }
-    for (const p of particles) {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x < 0 || p.x > W) p.vx *= -1;
-      if (p.y < 0 || p.y > H) p.vy *= -1;
-      ctx.fillStyle = p.c; ctx.globalAlpha = p.a;
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
     requestAnimationFrame(draw);
   }
   draw();
