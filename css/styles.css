@@ -57,8 +57,8 @@ body {
   font-size: 16px; line-height: 1.55; overflow-x: hidden;
   transition: background 0.4s ease, color 0.4s ease;
 }
-body:not(.console-body) { cursor: auto; }
-body:not(.console-body) * { cursor: auto !important; }
+
+
 ::selection { background: var(--red); color: #fff; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; }
@@ -105,14 +105,6 @@ button { font-family: inherit; cursor: pointer; }
 /* ============================================================ MAGNETIC + RIPPLE */
 .btn { position: relative; overflow: hidden; transition: transform 0.2s, all 0.25s; }
 
-/* ============================================================ CUSTOM CURSOR */
-.cursor { position: fixed; width: 8px; height: 8px; background: var(--red-bright); border-radius: 50%; pointer-events: none; z-index: 10000; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background 0.2s, border 0.2s; }
-.cursor-trail { position: fixed; width: 32px; height: 32px; border: 1px solid var(--red); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); transition: width 0.15s, height 0.15s, border-color 0.15s, opacity 0.3s; opacity: 0.5; transition: transform 0.08s ease-out; }
-.cursor.hovering { width: 0; height: 0; background: transparent; border: 2px solid var(--red-bright); box-shadow: 0 0 12px var(--red-glow); }
-.cursor.hovering.btn-primary-hover { border-color: #000; background: #fff; width: 6px; height: 6px; box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255,255,255,0.6); }
-.cursor-trail.hovering { width: 44px; height: 44px; border-color: var(--red-bright); opacity: 1; }
-.cursor-trail.hovering.btn-primary-hover { border-color: #fff; border-width: 2px; opacity: 1; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
-@media (max-width: 768px) { body { cursor: auto; } .cursor, .cursor-trail { display: none; } }
 
 /* ============================================================ NAV */
 .nav {

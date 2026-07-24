@@ -36,20 +36,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-/* ---------- CUSTOM CURSOR ---------- */
-const cursor = document.getElementById('cursor');
-const cursorTrail = document.getElementById('cursorTrail');
-
-document.addEventListener('mousemove', (e) => {
-  if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
-  if (cursorTrail) { cursorTrail.style.left = e.clientX + 'px'; cursorTrail.style.top = e.clientY + 'px'; }
-});
-
-document.querySelectorAll('a, button, .btn, .threat-card, .layer, .feat, .road-item').forEach(el => {
-  el.addEventListener('mouseenter', () => { cursor?.classList.add('hovering'); cursorTrail?.classList.add('hovering'); if (el.classList.contains('btn-primary')) { cursor?.classList.add('btn-primary-hover'); cursorTrail?.classList.add('btn-primary-hover'); } });
-  el.addEventListener('mouseleave', () => { cursor?.classList.remove('hovering'); cursorTrail?.classList.remove('hovering'); cursor?.classList.remove('btn-primary-hover'); cursorTrail?.classList.remove('btn-primary-hover'); });
-});
-
 /* ---------- REVEAL ON SCROLL (load + unload) ---------- */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach(e => {
@@ -63,17 +49,6 @@ const revealObserver = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
 document.querySelectorAll('[data-reveal], [data-reveal-stagger]').forEach(el => revealObserver.observe(el));
-
-/* ---------- MAGNETIC BUTTONS ---------- */
-document.querySelectorAll('.btn').forEach(btn => {
-  btn.addEventListener('mousemove', (e) => {
-    const rect = btn.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px)`;
-  });
-  btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
-});
 
 /* ---------- RIPPLE EFFECT ---------- */
 document.querySelectorAll('.btn').forEach(btn => {
