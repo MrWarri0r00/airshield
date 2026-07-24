@@ -18,34 +18,32 @@ window.addEventListener('load', () => {
   }
 });
 
-/* ---------- SCROLL PROGRESS + NAV ---------- */
+/* ---------- SCROLL PROGRESS + NAV (throttled) ---------- */
 const progressBar = document.getElementById('scrollProgress');
 const navEl = document.getElementById('nav');
+let scrollTicking = false;
 window.addEventListener('scroll', () => {
-  const scrolled = window.scrollY;
-  const max = document.documentElement.scrollHeight - window.innerHeight;
-  const pct = (scrolled / max) * 100;
-  if (progressBar) progressBar.style.width = pct + '%';
-  if (navEl) { if (scrolled > 50) navEl.style.borderBottomColor = 'var(--border)'; else navEl.style.borderBottomColor = 'transparent'; }
+  if (!scrollTicking) {
+    requestAnimationFrame(() => {
+      const scrolled = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = (scrolled / max) * 100;
+      if (progressBar) progressBar.style.width = pct + '%';
+      if (navEl) { if (scrolled > 50) navEl.style.borderBottomColor = 'var(--border)'; else navEl.style.borderBottomColor = 'transparent'; }
+      scrollTicking = false;
+    });
+    scrollTicking = true;
+  }
 });
 
 /* ---------- CUSTOM CURSOR ---------- */
 const cursor = document.getElementById('cursor');
 const cursorTrail = document.getElementById('cursorTrail');
-let mouseX = 0, mouseY = 0, trailX = 0, trailY = 0;
 
 document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX; mouseY = e.clientY;
-  if (cursor) { cursor.style.left = mouseX + 'px'; cursor.style.top = mouseY + 'px'; }
+  if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
+  if (cursorTrail) { cursorTrail.style.left = e.clientX + 'px'; cursorTrail.style.top = e.clientY + 'px'; }
 });
-
-function animateTrail() {
-  trailX += (mouseX - trailX) * 0.15;
-  trailY += (mouseY - trailY) * 0.15;
-  if (cursorTrail) { cursorTrail.style.left = trailX + 'px'; cursorTrail.style.top = trailY + 'px'; }
-  requestAnimationFrame(animateTrail);
-}
-animateTrail();
 
 document.querySelectorAll('a, button, .btn, .threat-card, .layer, .feat, .road-item').forEach(el => {
   el.addEventListener('mouseenter', () => { cursor?.classList.add('hovering'); cursorTrail?.classList.add('hovering'); if (el.classList.contains('btn-primary')) { cursor?.classList.add('btn-primary-hover'); cursorTrail?.classList.add('btn-primary-hover'); } });
